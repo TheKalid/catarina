@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import { type Account } from "@/lib/api";
 import { useAccountsStore } from "@/stores/accounts";
@@ -45,7 +46,14 @@ export default function AccountPage() {
         <h2 className="text-heading font-medium text-ink">Your accounts</h2>
 
         {status === "loading" && accounts.length === 0 ? (
-          <p className="text-body text-muted-stone">Loading accounts…</p>
+          <Card className="flex flex-col gap-4 p-6">
+            <Skeleton className="h-6 w-40" />
+            <div className="flex gap-2">
+              <Skeleton className="h-5 w-20 rounded-pill" />
+              <Skeleton className="h-5 w-16 rounded-pill" />
+            </div>
+            <Skeleton className="h-4 w-28" />
+          </Card>
         ) : error && accounts.length === 0 ? (
           <Card variant="fog" className="p-6">
             <p className="text-body text-terracotta">{error}</p>

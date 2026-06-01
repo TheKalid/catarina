@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import { growSites as growApi, type GrowSite, type Planting } from "@/lib/api";
 import { useCropsStore } from "@/stores/crops";
@@ -80,7 +81,17 @@ export function GrowPanel({ deviceId }: { deviceId: string }) {
       </div>
 
       {loading ? (
-        <p className="text-body text-muted-stone">Loading grow sites…</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[0, 1].map((i) => (
+            <Card key={i} className="flex items-center justify-between gap-3 p-4">
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <Skeleton className="h-8 w-20 rounded-pill" />
+            </Card>
+          ))}
+        </div>
       ) : error ? (
         <Card variant="fog" className="p-5">
           <p className="text-body text-terracotta">{error}</p>

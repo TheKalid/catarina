@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { devices as devicesApi, type DeviceEvent } from "@/lib/api";
 
 export function ActivityPanel({ deviceId }: { deviceId: string }) {
@@ -32,7 +33,15 @@ export function ActivityPanel({ deviceId }: { deviceId: string }) {
       <h2 className="text-heading font-medium text-ink">Activity</h2>
 
       {loading ? (
-        <p className="text-body text-muted-stone">Loading activity…</p>
+        <Card className="flex flex-col gap-4 p-5">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="size-1.5 rounded-pill" />
+              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          ))}
+        </Card>
       ) : error ? (
         <Card variant="fog" className="p-5">
           <p className="text-body text-terracotta">{error}</p>

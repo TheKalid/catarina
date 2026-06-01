@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { ChipIcon } from "@/components/ui/icons";
+import { DeviceCardSkeleton, SkeletonGrid } from "@/components/ui/skeleton";
 import { AddDeviceDialog } from "@/components/app/add-device-dialog";
 import { DeviceCard } from "@/components/app/device-card";
 import { useDevicesStore } from "@/stores/devices";
@@ -42,7 +43,9 @@ export default function DashboardPage() {
       </div>
 
       {loading ? (
-        <p className="text-body text-muted-stone">Loading devices…</p>
+        <SkeletonGrid count={3} className="sm:grid-cols-2 lg:grid-cols-3">
+          {() => <DeviceCardSkeleton />}
+        </SkeletonGrid>
       ) : error && devices.length === 0 ? (
         <Card variant="fog" className="p-6">
           <p className="text-body text-terracotta">{error}</p>

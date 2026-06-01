@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
+import { Tabs } from "@/components/ui/tabs";
+import { ChartCardSkeleton, SkeletonGrid } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import { METRIC_ORDER, metricMeta } from "@/lib/metrics";
 import { resolveWindow, type RangeKey } from "@/lib/time-range";
@@ -101,49 +103,26 @@ export default function DeviceDetailPage() {
 
   const hasAnyData = METRICS.some((m) => (series[m]?.points.length ?? 0) > 0);
 
-  return (
-    <Container className="flex flex-col gap-8 py-10">
-      <div className="flex flex-col gap-4">
-        <Link
-          href="/dashboard"
-          className="text-caption text-muted-stone underline-offset-4 hover:text-ink hover:underline"
-        >
-          ← Devices
-        </Link>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex flex-col gap-1.5">
-            <h1 className="font-display text-display text-ink">
-              {device?.name ?? device?.serial ?? "Device"}
-            </h1>
-            <p className="text-caption text-muted-stone">
-              {device ? (
-                <>
-                  {device.deviceModelCode} · {device.serial} ·{" "}
-                  <StatusText status={device.status} />
-                </>
-              ) : (
-                "Loading device…"
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2">
-              <span className="text-caption text-muted-stone">Compare to</span>
-              <select
-                value={cropId}
-                onChange={(e) => setCropId(e.target.value)}
-                className="h-9 rounded-pill border border-hint-of-grey/60 bg-canvas pl-3 pr-7 text-caption text-ink focus:border-ink focus:outline-none"
-              >
-                <option value="">No crop</option>
-                {cropList.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <RangeSwitcher value={range} onChange={setRange} />
-          </div>
+  const telemetry = (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <label className="flex items-center gap-2">
+            <span className="text-caption text-muted-stone">Compare to</span>
+            <select
+              value={cropId}
+              onChange={(e) => setCropId(e.target.value)}
+              className="h-9 rounded-pill border border-hint-of-grey/60 bg-canvas pl-3 pr-7 text-caption text-ink focus:border-ink focus:outline-none"
+            >
+              <option value="">No crop</option>
+              {cropList.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <RangeSwitcher value={range} onChange={setRange} />
         </div>
         {cropId ? (
           <p className="text-caption text-muted-stone">
@@ -163,7 +142,9 @@ export default function DeviceDetailPage() {
           <p className="text-body text-terracotta">{error}</p>
         </Card>
       ) : loading && !hasAnyData ? (
-        <p className="text-body text-muted-stone">Loading readings…</p>
+        <SkeletonGrid count={4} className="sm:grid-cols-2">
+          {() => <ChartCardSkeleton />}
+        </SkeletonGrid>
       ) : !hasAnyData ? (
         <Card variant="fog" className="flex flex-col items-center gap-2 px-6 py-16 text-center">
           <h2 className="text-heading font-medium text-ink">No readings in this range</h2>
@@ -204,10 +185,42 @@ export default function DeviceDetailPage() {
           formatStamp={fmt.stamp}
         />
       ) : null}
+    </div>
+  );
 
-      <div className="border-t border-ink/5 pt-2" />
-      <GrowPanel deviceId={deviceId} />
-      <ActivityPanel deviceId={deviceId} />
+  return (
+    <Container className="flex flex-col gap-6 py-10">
+      <div className="flex flex-col gap-4">
+        <Link
+          href="/dashboard"
+          className="text-caption text-muted-stone underline-offset-4 hover:text-ink hover:underline"
+        >
+          ← Devices
+        </Link>
+        <div className="flex flex-col gap-1.5">
+          <h1 className="font-display text-display text-ink">
+            {device?.name ?? device?.serial ?? "Device"}
+          </h1>
+          <p className="text-caption text-muted-stone">
+            {device ? (
+              <>
+                {device.deviceModelCode} · {device.serial} ·{" "}
+                <StatusText status={device.status} />
+              </>
+            ) : (
+              "Loading device…"
+            )}
+          </p>
+        </div>
+      </div>
+
+      <Tabs
+        tabs={[
+          { key: "telemetry", label: "Telemetry", content: telemetry },
+          { key: "grow", label: "Grow", content: <GrowPanel deviceId={deviceId} /> },
+          { key: "activity", label: "Activity", content: <ActivityPanel deviceId={deviceId} /> },
+        ]}
+      />
     </Container>
   );
 }
