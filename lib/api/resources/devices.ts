@@ -32,6 +32,26 @@ export function getDevice(deviceId: string, client: ApiClient = api) {
   );
 }
 
+export interface ReadingsQuery {
+  /** Filter to one metric code (e.g. "temp"). */
+  metric?: string;
+  /** Inclusive lower bound on recordedAt (ISO date-time). */
+  from?: string;
+  /** Inclusive upper bound on recordedAt (ISO date-time). */
+  to?: string;
+  /** Page size, max 1000. */
+  limit?: number;
+}
+
+/** Fetch sensor readings for a device within a time window. */
+export function getReadings(deviceId: string, query: ReadingsQuery = {}, client: ApiClient = api) {
+  return unwrap(
+    client.GET("/api/v1/devices/{deviceId}/readings", {
+      params: { path: { deviceId }, query },
+    }),
+  );
+}
+
 /**
  * Register/claim a device under an account. Response includes a one-time
  * plaintext device secret — surface it to the user immediately, it is never

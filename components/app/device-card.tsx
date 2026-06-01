@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { type Device } from "@/lib/api";
@@ -13,27 +14,29 @@ export function DeviceCard({ device }: { device: Device }) {
   const status = STATUS_STYLES[device.status];
 
   return (
-    <Card className="flex flex-col gap-4 p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-col">
-          <span className="text-body font-medium text-ink">
-            {device.name ?? device.serial}
-          </span>
-          <span className="text-caption text-light-steel">
-            {device.deviceModelCode} · {device.serial}
+    <Link href={`/devices/${device.id}`} className="group block">
+      <Card className="flex flex-col gap-4 p-5 transition-transform group-hover:-translate-y-0.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col">
+            <span className="text-body font-medium text-ink">
+              {device.name ?? device.serial}
+            </span>
+            <span className="text-caption text-light-steel">
+              {device.deviceModelCode} · {device.serial}
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-pill bg-fog px-2.5 py-1 text-caption text-muted-stone">
+            <span className={cn("size-1.5 rounded-pill", status.dot)} />
+            {status.label}
           </span>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-pill bg-fog px-2.5 py-1 text-caption text-muted-stone">
-          <span className={cn("size-1.5 rounded-pill", status.dot)} />
-          {status.label}
-        </span>
-      </div>
 
-      <div className="flex items-center justify-between border-t border-ink/5 pt-3 text-caption text-muted-stone">
-        <span>Last seen</span>
-        <span className="text-ink">{formatLastSeen(device.lastSeenAt)}</span>
-      </div>
-    </Card>
+        <div className="flex items-center justify-between border-t border-ink/5 pt-3 text-caption text-muted-stone">
+          <span>Last seen</span>
+          <span className="text-ink">{formatLastSeen(device.lastSeenAt)}</span>
+        </div>
+      </Card>
+    </Link>
   );
 }
 
