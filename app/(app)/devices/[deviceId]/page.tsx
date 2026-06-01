@@ -19,6 +19,9 @@ import { ActivityPanel } from "@/components/app/activity-panel";
 import { InsightsPanel } from "@/components/app/insights-panel";
 
 const METRICS = [...METRIC_ORDER];
+// DLI and the heatmap are daily/aggregate views — meaningless over 24h — so
+// they always use at least a 7-day window regardless of the chart range.
+const AGG_METRICS = ["temp", "lux"];
 
 export default function DeviceDetailPage() {
   const params = useParams<{ deviceId: string }>();
@@ -32,6 +35,11 @@ export default function DeviceDetailPage() {
   const [cropId, setCropId] = useState("");
 
   const { series, loading, error } = useReadings(deviceId, METRICS, range);
+
+  // Aggregate insights window — floored to 7d (cache-deduped when it equals the
+  // selected range, so no extra fetch for 7d/30d).
+  const insightsRange: RangeKey = range === "24h" ? "7d" : range;
+  const agg = useReadings(deviceId, AGG_METRICS, insightsRange);
 
   const cropList = useCropsStore((s) => s.list);
   const targetsById = useCropsStore((s) => s.targetsById);
@@ -59,10 +67,22 @@ export default function DeviceDetailPage() {
     return map;
   }, [cropId, targetsById]);
 
-  const xDomain = useMemo(() => {
+  // Clamp the x-domain to the earliest available reading so a wide range with
+  // little history doesn't cram the line into the right edge with dead space.
+  const { xDomain, limited } = useMemo(() => {
     const w = resolveWindow(range);
-    return [Date.parse(w.from), Date.parse(w.to)] as [number, number];
-  }, [range]);
+    const start = Date.parse(w.from);
+    const end = Date.parse(w.to);
+    let earliest = Infinity;
+    for (const m of METRICS) {
+      const raw = series[m]?.raw;
+      if (raw && raw.length) earliest = Math.min(earliest, raw[0].t);
+    }
+    const clampedStart = Number.isFinite(earliest) ? Math.max(start, earliest) : start;
+    // "limited" when data covers noticeably less than the requested window.
+    const isLimited = Number.isFinite(earliest) && clampedStart > start + 12 * 60 * 60 * 1000;
+    return { xDomain: [clampedStart, end] as [number, number], limited: isLimited };
+  }, [range, series]);
 
   const fmt = useMemo(() => {
     const time = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
@@ -131,6 +151,11 @@ export default function DeviceDetailPage() {
             readings are flagged per metric.
           </p>
         ) : null}
+        {limited ? (
+          <p className="text-caption text-light-steel">
+            Limited history — showing all readings available so far.
+          </p>
+        ) : null}
       </div>
 
       {error ? (
@@ -168,7 +193,10 @@ export default function DeviceDetailPage() {
         <InsightsPanel
           tempRaw={series.temp?.raw ?? []}
           humidityRaw={series.humidity?.raw ?? []}
-          luxRaw={series.lux?.raw ?? []}
+          aggTempRaw={agg.series.temp?.raw ?? []}
+          aggLuxRaw={agg.series.lux?.raw ?? []}
+          aggRange={insightsRange}
+          selectedRange={range}
           xDomain={xDomain}
           activeTime={activeTime}
           onHoverTime={setActiveTime}

@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { lttb, type Point } from "@/lib/downsample";
 import { buildHeatmap, computeDLIByDay, computeVPD, VPD_IDEAL } from "@/lib/derived";
 import { metricMeta, formatValue, type MetricMeta } from "@/lib/metrics";
+import { rangeDef, type RangeKey } from "@/lib/time-range";
 import type { MetricSeries } from "@/lib/use-readings";
 import { MetricChartCard } from "@/components/charts/metric-chart-card";
 import { Heatmap } from "@/components/charts/heatmap";
@@ -39,9 +40,14 @@ function seriesFromPoints(metric: string, raw: Point[]): MetricSeries {
 }
 
 interface InsightsPanelProps {
+  /** Selected-range temp & humidity — VPD stays synced with the charts above. */
   tempRaw: Point[];
   humidityRaw: Point[];
-  luxRaw: Point[];
+  /** Aggregate-window temp & lux — for the daily DLI and heatmap views. */
+  aggTempRaw: Point[];
+  aggLuxRaw: Point[];
+  aggRange: RangeKey;
+  selectedRange: RangeKey;
   xDomain: [number, number];
   activeTime: number | null;
   onHoverTime: (t: number | null) => void;
@@ -52,7 +58,10 @@ interface InsightsPanelProps {
 export function InsightsPanel({
   tempRaw,
   humidityRaw,
-  luxRaw,
+  aggTempRaw,
+  aggLuxRaw,
+  aggRange,
+  selectedRange,
   xDomain,
   activeTime,
   onHoverTime,
@@ -63,12 +72,16 @@ export function InsightsPanel({
     () => seriesFromPoints("vpd", computeVPD(tempRaw, humidityRaw)),
     [tempRaw, humidityRaw],
   );
-  const dli = useMemo(() => computeDLIByDay(luxRaw), [luxRaw]);
+  const dli = useMemo(() => computeDLIByDay(aggLuxRaw), [aggLuxRaw]);
 
   const [heatMetric, setHeatMetric] = useState<"temp" | "lux">("lux");
-  const heatRaw = heatMetric === "lux" ? luxRaw : tempRaw;
+  const heatRaw = heatMetric === "lux" ? aggLuxRaw : aggTempRaw;
   const heatmap = useMemo(() => buildHeatmap(heatRaw), [heatRaw]);
   const heatMeta = metricMeta(heatMetric);
+
+  // When the daily views span a wider window than the user's chart selection,
+  // label it so the difference is explicit (e.g. 24h charts, 7-day DLI).
+  const windowNote = aggRange !== selectedRange ? `Last ${rangeDef(aggRange).label}` : null;
 
   const hasVpd = vpdSeries.raw.length > 0;
   const hasDli = dli.length > 0;
@@ -98,13 +111,15 @@ export function InsightsPanel({
           />
         ) : null}
 
-        {hasDli ? <DliCard dli={dli} /> : null}
+        {hasDli ? <DliCard dli={dli} note={windowNote} /> : null}
       </div>
 
       {hasHeat ? (
         <Card className="flex flex-col gap-4 p-5">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-caption text-muted-stone">Daily pattern · hour of day</span>
+            <span className="text-caption text-muted-stone">
+              Daily pattern · hour of day{windowNote ? ` · ${windowNote.toLowerCase()}` : ""}
+            </span>
             <div className="inline-flex items-center gap-1 rounded-pill bg-fog p-1">
               {(["lux", "temp"] as const).map((m) => (
                 <button
@@ -135,7 +150,7 @@ export function InsightsPanel({
 
 /* ------------------------------------------------------------------- DLI -- */
 
-function DliCard({ dli }: { dli: { day: number; dli: number }[] }) {
+function DliCard({ dli, note }: { dli: { day: number; dli: number }[]; note: string | null }) {
   const max = Math.max(...dli.map((d) => d.dli), 0.0001);
   const today = dli[dli.length - 1];
 
@@ -143,7 +158,9 @@ function DliCard({ dli }: { dli: { day: number; dli: number }[] }) {
     <Card className="flex flex-col gap-3 p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <span className="text-caption text-muted-stone">Daily Light Integral</span>
+          <span className="text-caption text-muted-stone">
+            Daily Light Integral{note ? ` · ${note.toLowerCase()}` : ""}
+          </span>
           <span className="text-heading-lg font-medium text-ink tabular-nums">
             {today ? `${today.dli.toFixed(1)} mol` : "—"}
           </span>
