@@ -16,6 +16,7 @@
 import { create } from "zustand";
 import { devices as devicesApi, type Device } from "@/lib/api";
 import type { ListDevicesQuery } from "@/lib/api/resources/devices";
+import type { Schemas } from "@/lib/api/types";
 
 interface DevicesState {
   /** Normalized device records, keyed by device id. */
@@ -30,6 +31,8 @@ interface DevicesState {
 
   fetchAll: (query?: ListDevicesQuery) => Promise<void>;
   fetchOne: (deviceId: string) => Promise<Device>;
+  /** Register a device; returns the one-time plaintext secret to surface once. */
+  register: (body: Schemas["RegisterDeviceBody"]) => Promise<string>;
   rename: (deviceId: string, name: string) => Promise<void>;
   remove: (deviceId: string) => Promise<void>;
 }
@@ -67,6 +70,17 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
       allIds: s.allIds.includes(device.id) ? s.allIds : [...s.allIds, device.id],
     }));
     return device;
+  },
+
+  register: async (body) => {
+    // Response carries the device plus a one-time `secret`. Keep the device in
+    // state; hand the secret back to the caller to show once (never stored).
+    const { secret, ...device } = await devicesApi.registerDevice(body);
+    set((s) => ({
+      byId: { ...s.byId, [device.id]: device },
+      allIds: s.allIds.includes(device.id) ? s.allIds : [device.id, ...s.allIds],
+    }));
+    return secret;
   },
 
   rename: async (deviceId, name) => {
