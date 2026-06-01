@@ -109,7 +109,7 @@ export function LineChart({
   const gradId = `grad-${color.replace("#", "")}`;
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} className="overflow-visible" aria-hidden="true" focusable="false">
       <LinearGradient id={gradId} from={color} to={color} fromOpacity={0.16} toOpacity={0} />
       <Group left={MARGIN.left} top={MARGIN.top}>
         <GridRows scale={yScale} width={innerW} numTicks={3} stroke="#17191c" strokeOpacity={0.06} />
@@ -166,7 +166,7 @@ export function LineChart({
           numTicks={3}
           hideAxisLine
           hideTicks
-          tickLabelProps={() => ({ fill: "#777b86", fontSize: 10, dx: -2, dy: 3, textAnchor: "end" })}
+          tickLabelProps={() => ({ fill: "#696d78", fontSize: 10, dx: -2, dy: 3, textAnchor: "end" })}
         />
         <AxisBottom
           scale={xScale}
@@ -175,7 +175,7 @@ export function LineChart({
           hideAxisLine
           hideTicks
           tickFormat={(v) => formatTick(+v)}
-          tickLabelProps={() => ({ fill: "#777b86", fontSize: 10, dy: 2, textAnchor: "middle" })}
+          tickLabelProps={() => ({ fill: "#696d78", fontSize: 10, dy: 2, textAnchor: "middle" })}
         />
 
         {/* Transparent capture layer for hover. */}

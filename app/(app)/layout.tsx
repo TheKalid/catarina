@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AppTopBar } from "@/components/app/app-top-bar";
+import { setUnauthorizedHandler } from "@/lib/api";
 import { useHydrated } from "@/lib/use-hydrated";
 import { useAuthStore } from "@/stores/auth";
 
@@ -22,6 +23,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
   }, [hydrated, isAuthed, pathname, router]);
+
+  // Expire the session on any 401 from an authed request: clear auth (which
+  // trips the guard above) and bounce to login preserving the return path.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      useAuthStore.getState().logout();
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [pathname, router]);
 
   // Avoid flashing protected content before the session is known / redirect runs.
   if (!hydrated || !isAuthed) {

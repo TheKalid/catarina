@@ -46,6 +46,23 @@ export function MetricChartCard({
   const outCount = hasBand ? points.filter((p) => isOutOfRange(p.v, band!)).length : 0;
   const shownOut = hasBand && shown ? isOutOfRange(shown.v, band!) : false;
 
+  // Text alternative for the chart (the SVG is hidden from assistive tech).
+  const ariaParts = [`${meta.label}.`];
+  if (series?.last) ariaParts.push(`Latest ${formatValue(series.last.v, meta)}.`);
+  if (series && series.min != null && series.max != null && series.avg != null) {
+    ariaParts.push(
+      `Low ${formatValue(series.min, meta)}, average ${formatValue(series.avg, meta)}, high ${formatValue(series.max, meta)}.`,
+    );
+  }
+  if (hasBand) {
+    ariaParts.push(
+      outCount > 0
+        ? `${outCount} of ${points.length} readings outside the ideal range.`
+        : "All readings within the ideal range.",
+    );
+  }
+  const chartLabel = ariaParts.join(" ");
+
   return (
     <Card className="flex flex-col gap-3 p-5">
       <div className="flex items-start justify-between gap-3">
@@ -80,13 +97,18 @@ export function MetricChartCard({
               {delta > 0 ? "▲" : delta < 0 ? "▼" : "•"} {formatValue(Math.abs(delta), meta)}
             </span>
           ) : null}
-          <span className="text-caption text-hint-of-grey tabular-nums">
+          <span className="text-caption text-light-steel tabular-nums">
             {hovered ? formatStamp(hovered.t) : "range"}
           </span>
         </div>
       </div>
 
-      <div className="h-32">
+      <div
+        className="h-32 rounded-image focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+        role="img"
+        tabIndex={0}
+        aria-label={chartLabel}
+      >
         <ParentSize>
           {({ width, height }) => (
             <LineChart

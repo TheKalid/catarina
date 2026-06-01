@@ -39,9 +39,38 @@ const browserAuthMiddleware: Middleware = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// Session-expiry handling
+// ---------------------------------------------------------------------------
+// A 401 on any authenticated request means the token is missing/expired. The
+// app registers a handler (clear auth + redirect to login) via
+// `setUnauthorizedHandler`. We skip the auth endpoints themselves — a 401 from
+// /auth/login is "wrong password", not an expired session.
+
+let onUnauthorized: (() => void) | null = null;
+
+/** Register (or clear) the handler invoked when an authed request returns 401. */
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  onUnauthorized = handler;
+}
+
+const sessionMiddleware: Middleware = {
+  onResponse({ request, response }) {
+    if (
+      response.status === 401 &&
+      onUnauthorized &&
+      !request.url.includes("/api/v1/auth/")
+    ) {
+      onUnauthorized();
+    }
+    return response;
+  },
+};
+
 /** Shared browser client. Reads its token from `setApiToken`. */
 export const api: ApiClient = createClient<paths>({ baseUrl: API_BASE_URL });
 api.use(browserAuthMiddleware);
+api.use(sessionMiddleware);
 
 // ---------------------------------------------------------------------------
 // Per-request factory (Server Components / Route Handlers)

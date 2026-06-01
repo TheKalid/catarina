@@ -9,6 +9,7 @@ export {
   createApiClient,
   setApiToken,
   getApiToken,
+  setUnauthorizedHandler,
   API_BASE_URL,
   type ApiClient,
 } from "./client";

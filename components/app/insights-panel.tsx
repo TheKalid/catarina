@@ -121,7 +121,12 @@ export function InsightsPanel({
               ))}
             </div>
           </div>
-          <Heatmap data={heatmap} color={heatMeta.color} formatValue={(v) => formatValue(v, heatMeta)} />
+          <Heatmap
+            data={heatmap}
+            color={heatMeta.color}
+            formatValue={(v) => formatValue(v, heatMeta)}
+            label={heatMeta.label}
+          />
         </Card>
       ) : null}
     </section>
@@ -143,13 +148,19 @@ function DliCard({ dli }: { dli: { day: number; dli: number }[] }) {
             {today ? `${today.dli.toFixed(1)} mol` : "—"}
           </span>
         </div>
-        <span className="text-caption text-hint-of-grey">mol/m²/day</span>
+        <span className="text-caption text-light-steel">mol/m²/day</span>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div
+        className="flex flex-col gap-1.5"
+        role="img"
+        aria-label={`Daily light integral over ${dli.length} days. ${
+          today ? `Today ${today.dli.toFixed(1)} mol per square metre.` : ""
+        }`}
+      >
         {/* Bars are DIRECT children of a definite-height row so their %-heights
             resolve (a %-height inside an auto-height flex column collapses). */}
-        <div className="flex h-28 items-end gap-1.5">
+        <div className="flex h-28 items-end gap-1.5" aria-hidden="true">
           {dli.map((d) => (
             <div
               key={d.day}
@@ -163,7 +174,7 @@ function DliCard({ dli }: { dli: { day: number; dli: number }[] }) {
           {dli.map((d) => (
             <span
               key={d.day}
-              className="flex-1 text-center text-caption text-hint-of-grey tabular-nums"
+              className="flex-1 text-center text-caption text-light-steel tabular-nums"
             >
               {new Date(d.day).toLocaleDateString(undefined, { weekday: "narrow" })}
             </span>

@@ -22,17 +22,20 @@ export function Heatmap({
   data,
   color,
   formatValue,
+  label,
 }: {
   data: HeatmapData;
   color: string;
   formatValue: (v: number) => string;
+  label?: string;
 }) {
   const [r, g, b] = hexToRgb(color);
   const span = data.max - data.min || 1;
+  const ariaLabel = `${label ?? "Hourly"} pattern over ${data.days.length} days, by hour of day. Values range ${formatValue(data.min)} to ${formatValue(data.max)}.`;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-1.5" role="img" aria-label={ariaLabel}>
+      <div className="flex flex-col gap-0.5" aria-hidden="true">
         {data.rows.map((row, i) => (
           <div key={data.days[i]} className="flex items-center gap-2">
             <span className="w-10 shrink-0 text-right text-caption text-light-steel tabular-nums">
@@ -61,7 +64,7 @@ export function Heatmap({
           {HOUR_LABELS.map((h) => (
             <span
               key={h}
-              className="absolute text-caption text-hint-of-grey tabular-nums"
+              className="absolute text-caption text-light-steel tabular-nums"
               style={{ left: `${(h / 24) * 100}%` }}
             >
               {h}:00
