@@ -15,16 +15,22 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
 
   const byId = useAccountsStore((s) => s.byId);
   const allIds = useAccountsStore((s) => s.allIds);
+  const accountsStatus = useAccountsStore((s) => s.status);
   const fetchAccounts = useAccountsStore((s) => s.fetchAll);
   // Only accounts the caller can register under (owner/admin).
   const manageableAccounts = allIds
     .map((id) => byId[id])
     .filter((a) => a.role === "owner" || a.role === "admin");
 
+  const accountsLoading = accountsStatus === "loading" && allIds.length === 0;
+  // No account to register under — e.g. the signed-in user has none yet.
+  const noManageableAccount = !accountsLoading && manageableAccounts.length === 0;
+
   const [accountId, setAccountId] = useState("");
   // Derived default avoids a setState-in-effect: fall back to the first
   // manageable account until the user explicitly picks one.
   const selectedAccountId = accountId || manageableAccounts[0]?.id || "";
+  const selectedAccount = manageableAccounts.find((a) => a.id === selectedAccountId);
   const [serial, setSerial] = useState("");
   const [modelCode, setModelCode] = useState(DEVICE_MODELS[0]?.code ?? "");
   const [name, setName] = useState("");
@@ -75,6 +81,10 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
     <Modal open={open} onClose={close} title={secret ? "Device registered" : "Add a device"}>
       {secret ? (
         <SecretReveal secret={secret} onDone={close} />
+      ) : accountsLoading ? (
+        <p className="text-body text-muted-stone">Loading your accounts…</p>
+      ) : noManageableAccount ? (
+        <NoAccountNotice onClose={close} />
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {manageableAccounts.length > 1 ? (
@@ -92,7 +102,12 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
                 ))}
               </select>
             </label>
-          ) : null}
+          ) : (
+            <div className="flex items-center justify-between rounded-input bg-fog px-4 py-2.5">
+              <span className="text-caption text-muted-stone">Account</span>
+              <span className="text-body text-ink">{selectedAccount?.name}</span>
+            </div>
+          )}
 
           <label className="flex flex-col gap-2">
             <span className="text-caption font-medium text-ink">Model</span>
@@ -152,6 +167,32 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
         </form>
       )}
     </Modal>
+  );
+}
+
+/* ----------------------------------------------------------- NoAccountNotice -- */
+
+function NoAccountNotice({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-body text-muted-stone text-pretty">
+        You don’t have an account to register a device under. Devices belong to
+        an account, and your sign-in isn’t an owner or admin of one yet.
+      </p>
+      <div className="rounded-input bg-fog px-4 py-3 text-caption text-muted-stone text-pretty">
+        Accounts you can manage appear on the{" "}
+        <a href="/account" className="font-medium text-ink underline-offset-4 hover:underline">
+          Account
+        </a>{" "}
+        page. If it’s empty, you’ll need an account created for you before you
+        can add devices.
+      </div>
+      <div className="mt-1 flex justify-end">
+        <Button type="button" variant="ghost" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+    </div>
   );
 }
 
