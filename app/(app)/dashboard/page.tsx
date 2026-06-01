@@ -12,7 +12,7 @@ import { useDevicesStore } from "@/stores/devices";
 export default function DashboardPage() {
   const byId = useDevicesStore((s) => s.byId);
   const allIds = useDevicesStore((s) => s.allIds);
-  const status = useDevicesStore((s) => s.status);
+  const loaded = useDevicesStore((s) => s.loaded);
   const error = useDevicesStore((s) => s.error);
   const fetchAll = useDevicesStore((s) => s.fetchAll);
   const devices = allIds.map((id) => byId[id]);
@@ -23,7 +23,9 @@ export default function DashboardPage() {
     fetchAll().catch(() => {});
   }, [fetchAll]);
 
-  const loading = status === "loading" && devices.length === 0;
+  // Show loading until the first fetch resolves, so we never flash the empty
+  // state before devices arrive.
+  const loading = !loaded && devices.length === 0;
 
   return (
     <Container className="flex flex-col gap-8 py-10">

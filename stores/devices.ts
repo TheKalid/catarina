@@ -24,6 +24,9 @@ interface DevicesState {
   /** Insertion/most-recent fetch order for stable list rendering. */
   allIds: string[];
   status: "idle" | "loading" | "error";
+  /** True once the first list fetch has resolved (distinguishes "not yet
+   *  loaded" from "loaded, genuinely empty" — avoids an empty-state flash). */
+  loaded: boolean;
   error: string | null;
 
   /** Selector: devices as an ordered array. */
@@ -41,6 +44,7 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
   byId: {},
   allIds: [],
   status: "idle",
+  loaded: false,
   error: null,
 
   list: () => {
@@ -56,6 +60,7 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
         byId: Object.fromEntries(data.map((d) => [d.id, d])),
         allIds: data.map((d) => d.id),
         status: "idle",
+        loaded: true,
       });
     } catch (err) {
       set({ status: "error", error: errorMessage(err) });
