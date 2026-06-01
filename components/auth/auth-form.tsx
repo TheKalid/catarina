@@ -94,7 +94,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </div>
 
         {error ? (
-          <p className="rounded-input bg-warm-mist px-4 py-3 text-caption text-terracotta">
+          <p role="alert" className="rounded-input bg-warm-mist px-4 py-3 text-caption text-terracotta">
             {error}
           </p>
         ) : null}

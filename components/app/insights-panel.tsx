@@ -146,19 +146,29 @@ function DliCard({ dli }: { dli: { day: number; dli: number }[] }) {
         <span className="text-caption text-hint-of-grey">mol/m²/day</span>
       </div>
 
-      <div className="flex h-32 items-end gap-1.5">
-        {dli.map((d) => (
-          <div key={d.day} className="flex flex-1 flex-col items-center justify-end gap-1.5">
+      <div className="flex flex-col gap-1.5">
+        {/* Bars are DIRECT children of a definite-height row so their %-heights
+            resolve (a %-height inside an auto-height flex column collapses). */}
+        <div className="flex h-28 items-end gap-1.5">
+          {dli.map((d) => (
             <div
-              className="w-full rounded-t-[3px] bg-light-steel"
-              style={{ height: `${Math.max(2, (d.dli / max) * 100)}%` }}
-              title={`${d.dli.toFixed(1)} mol/m²`}
+              key={d.day}
+              className="flex-1 rounded-t-[3px] bg-light-steel transition-colors hover:bg-muted-stone"
+              style={{ height: `${Math.max(3, (d.dli / max) * 100)}%` }}
+              title={`${d.dli.toFixed(1)} mol/m² · ${new Date(d.day).toLocaleDateString()}`}
             />
-            <span className="text-caption text-hint-of-grey tabular-nums">
+          ))}
+        </div>
+        <div className="flex gap-1.5">
+          {dli.map((d) => (
+            <span
+              key={d.day}
+              className="flex-1 text-center text-caption text-hint-of-grey tabular-nums"
+            >
               {new Date(d.day).toLocaleDateString(undefined, { weekday: "narrow" })}
             </span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </Card>
   );

@@ -27,9 +27,9 @@ export function AppTopBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink/5 bg-canvas/80 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between gap-6">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 sm:gap-8">
           <Logo href="/dashboard" />
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="flex items-center gap-4 sm:gap-6">
             {NAV.map((item) => {
               const active = pathname === item.href;
               return (
