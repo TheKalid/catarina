@@ -15,4 +15,5 @@ export {
 export { ApiError, unwrap } from "./errors";
 export * as devices from "./resources/devices";
 export * as auth from "./resources/auth";
+export * as accounts from "./resources/accounts";
 export type * from "./types";
