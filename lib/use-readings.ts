@@ -8,6 +8,7 @@ import { resolveWindow, type RangeKey } from "./time-range";
 export interface MetricSeries {
   metric: string;
   points: Point[]; // ascending by time, downsampled for rendering
+  raw: Point[]; // full-resolution ascending points (for derived computations)
   last: Point | null;
   min: number | null;
   max: number | null;
@@ -55,6 +56,7 @@ async function loadMetric(
   const series: MetricSeries = {
     metric,
     points: lttb(points, RENDER_POINTS),
+    raw: points,
     last: points.length ? points[points.length - 1] : EMPTY,
     min,
     max,

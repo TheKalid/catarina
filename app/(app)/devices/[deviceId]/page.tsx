@@ -16,6 +16,7 @@ import { RangeSwitcher } from "@/components/charts/range-switcher";
 import type { TargetBand } from "@/components/charts/line-chart";
 import { GrowPanel } from "@/components/app/grow-panel";
 import { ActivityPanel } from "@/components/app/activity-panel";
+import { InsightsPanel } from "@/components/app/insights-panel";
 
 const METRICS = [...METRIC_ORDER];
 
@@ -162,6 +163,19 @@ export default function DeviceDetailPage() {
           ))}
         </div>
       )}
+
+      {hasAnyData ? (
+        <InsightsPanel
+          tempRaw={series.temp?.raw ?? []}
+          humidityRaw={series.humidity?.raw ?? []}
+          luxRaw={series.lux?.raw ?? []}
+          xDomain={xDomain}
+          activeTime={activeTime}
+          onHoverTime={setActiveTime}
+          formatTick={fmt.tick}
+          formatStamp={fmt.stamp}
+        />
+      ) : null}
 
       <div className="border-t border-ink/5 pt-2" />
       <GrowPanel deviceId={deviceId} />
