@@ -52,6 +52,21 @@ export function getReadings(deviceId: string, query: ReadingsQuery = {}, client:
   );
 }
 
+export interface EventsQuery {
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
+/** Fetch device events (activity stream) within a time window. */
+export function getEvents(deviceId: string, query: EventsQuery = {}, client: ApiClient = api) {
+  return unwrap(
+    client.GET("/api/v1/devices/{deviceId}/events", {
+      params: { path: { deviceId }, query },
+    }),
+  );
+}
+
 /**
  * Register/claim a device under an account. Response includes a one-time
  * plaintext device secret — surface it to the user immediately, it is never

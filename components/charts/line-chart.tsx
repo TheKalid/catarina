@@ -26,6 +26,12 @@ export function pointAt(points: Point[], t: number): Point | null {
   return t - a.t <= b.t - t ? a : b;
 }
 
+/** Ideal-range corridor (from a crop's targets). Either bound may be open. */
+export interface TargetBand {
+  min: number | null;
+  max: number | null;
+}
+
 interface LineChartProps {
   width: number;
   height: number;
@@ -38,6 +44,8 @@ interface LineChartProps {
   onHoverTime: (t: number | null) => void;
   /** Few-tick time formatter chosen by the page for the current range. */
   formatTick: (t: number) => string;
+  /** Optional ideal-range corridor to overlay. */
+  band?: TargetBand | null;
 }
 
 export function LineChart({
@@ -49,6 +57,7 @@ export function LineChart({
   activeTime,
   onHoverTime,
   formatTick,
+  band,
 }: LineChartProps) {
   const innerW = Math.max(0, width - MARGIN.left - MARGIN.right);
   const innerH = Math.max(0, height - MARGIN.top - MARGIN.bottom);
@@ -65,13 +74,25 @@ export function LineChart({
       if (p.v < min) min = p.v;
       if (p.v > max) max = p.v;
     }
+    // Keep the ideal corridor in view even when readings stay inside it.
+    if (band?.min != null) min = Math.min(min, band.min);
+    if (band?.max != null) max = Math.max(max, band.max);
     if (!isFinite(min)) {
       min = 0;
       max = 1;
     }
     const pad = (max - min || Math.abs(max) || 1) * 0.12;
     return scaleLinear({ domain: [min - pad, max + pad], range: [innerH, 0], nice: true });
-  }, [points, innerH]);
+  }, [points, innerH, band]);
+
+  const bandRect = useMemo(() => {
+    if (!band || (band.min == null && band.max == null)) return null;
+    const top = band.max != null ? yScale(band.max) : 0;
+    const bottom = band.min != null ? yScale(band.min) : innerH;
+    const y = Math.max(0, Math.min(top, bottom));
+    const h = Math.min(innerH, Math.max(top, bottom)) - y;
+    return { y, h, topLine: band.max != null ? yScale(band.max) : null, bottomLine: band.min != null ? yScale(band.min) : null };
+  }, [band, yScale, innerH]);
 
   const active = activeTime !== null ? pointAt(points, activeTime) : null;
 
@@ -92,6 +113,18 @@ export function LineChart({
       <LinearGradient id={gradId} from={color} to={color} fromOpacity={0.16} toOpacity={0} />
       <Group left={MARGIN.left} top={MARGIN.top}>
         <GridRows scale={yScale} width={innerW} numTicks={3} stroke="#17191c" strokeOpacity={0.06} />
+
+        {bandRect ? (
+          <>
+            <rect x={0} y={bandRect.y} width={innerW} height={Math.max(0, bandRect.h)} fill="#17191c" fillOpacity={0.05} />
+            {bandRect.topLine != null ? (
+              <Line from={{ x: 0, y: bandRect.topLine }} to={{ x: innerW, y: bandRect.topLine }} stroke="#4c4c4c" strokeOpacity={0.4} strokeWidth={1} strokeDasharray="2,3" />
+            ) : null}
+            {bandRect.bottomLine != null ? (
+              <Line from={{ x: 0, y: bandRect.bottomLine }} to={{ x: innerW, y: bandRect.bottomLine }} stroke="#4c4c4c" strokeOpacity={0.4} strokeWidth={1} strokeDasharray="2,3" />
+            ) : null}
+          </>
+        ) : null}
 
         {points.length > 0 ? (
           <>

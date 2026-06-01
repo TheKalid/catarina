@@ -10,8 +10,12 @@ import { METRIC_ORDER, metricMeta } from "@/lib/metrics";
 import { resolveWindow, type RangeKey } from "@/lib/time-range";
 import { useReadings } from "@/lib/use-readings";
 import { useDevicesStore } from "@/stores/devices";
+import { useCropsStore } from "@/stores/crops";
 import { MetricChartCard } from "@/components/charts/metric-chart-card";
 import { RangeSwitcher } from "@/components/charts/range-switcher";
+import type { TargetBand } from "@/components/charts/line-chart";
+import { GrowPanel } from "@/components/app/grow-panel";
+import { ActivityPanel } from "@/components/app/activity-panel";
 
 const METRICS = [...METRIC_ORDER];
 
@@ -24,12 +28,35 @@ export default function DeviceDetailPage() {
 
   const [range, setRange] = useState<RangeKey>("24h");
   const [activeTime, setActiveTime] = useState<number | null>(null);
+  const [cropId, setCropId] = useState("");
 
   const { series, loading, error } = useReadings(deviceId, METRICS, range);
+
+  const cropList = useCropsStore((s) => s.list);
+  const targetsById = useCropsStore((s) => s.targetsById);
+  const fetchCropList = useCropsStore((s) => s.fetchList);
+  const fetchCropTargets = useCropsStore((s) => s.fetchTargets);
 
   useEffect(() => {
     if (!device) fetchOne(deviceId).catch(() => {});
   }, [device, deviceId, fetchOne]);
+
+  useEffect(() => {
+    fetchCropList().catch(() => {});
+  }, [fetchCropList]);
+
+  useEffect(() => {
+    if (cropId) fetchCropTargets(cropId).catch(() => {});
+  }, [cropId, fetchCropTargets]);
+
+  // Map the comparison crop's targets to a band per metric code.
+  const bandByMetric = useMemo(() => {
+    const map: Record<string, TargetBand> = {};
+    for (const t of (cropId && targetsById[cropId]) || []) {
+      map[t.metricCode] = { min: t.minValue ?? null, max: t.maxValue ?? null };
+    }
+    return map;
+  }, [cropId, targetsById]);
 
   const xDomain = useMemo(() => {
     const w = resolveWindow(range);
@@ -78,8 +105,31 @@ export default function DeviceDetailPage() {
               )}
             </p>
           </div>
-          <RangeSwitcher value={range} onChange={setRange} />
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2">
+              <span className="text-caption text-muted-stone">Compare to</span>
+              <select
+                value={cropId}
+                onChange={(e) => setCropId(e.target.value)}
+                className="h-9 rounded-pill border border-hint-of-grey/60 bg-canvas pl-3 pr-7 text-caption text-ink focus:border-ink focus:outline-none"
+              >
+                <option value="">No crop</option>
+                {cropList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <RangeSwitcher value={range} onChange={setRange} />
+          </div>
         </div>
+        {cropId ? (
+          <p className="text-caption text-muted-stone">
+            Shaded band shows the ideal range for the selected crop. Out-of-range
+            readings are flagged per metric.
+          </p>
+        ) : null}
       </div>
 
       {error ? (
@@ -107,10 +157,15 @@ export default function DeviceDetailPage() {
               onHoverTime={setActiveTime}
               formatTick={fmt.tick}
               formatStamp={fmt.stamp}
+              band={cropId ? bandByMetric[code] ?? null : null}
             />
           ))}
         </div>
       )}
+
+      <div className="border-t border-ink/5 pt-2" />
+      <GrowPanel deviceId={deviceId} />
+      <ActivityPanel deviceId={deviceId} />
     </Container>
   );
 }
