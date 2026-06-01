@@ -30,3 +30,9 @@ next-env.d.ts
 
 # The generated API schema IS committed (it lets the app build/typecheck
 # without a running backend). Regenerate with `npm run gen:api`.
+
+# Playwright validation screenshots (generated)
+scripts/screens/
+# Playwright browser test artifacts
+/test-results/
+/playwright-report/
