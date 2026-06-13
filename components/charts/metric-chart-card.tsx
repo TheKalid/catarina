@@ -3,6 +3,7 @@
 import { ParentSize } from "@visx/responsive";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n";
 import { formatValue, type MetricMeta } from "@/lib/metrics";
 import type { MetricSeries } from "@/lib/use-readings";
 import { LineChart, pointAt, type TargetBand } from "./line-chart";
@@ -33,6 +34,8 @@ export function MetricChartCard({
   formatStamp,
   band,
 }: MetricChartCardProps) {
+  const { t } = useI18n();
+  const label = (t.metrics as Record<string, string>)[meta.code] ?? meta.label;
   const points = series?.points ?? [];
   const hovered = activeTime !== null ? pointAt(points, activeTime) : null;
   const shown = hovered ?? series?.last ?? null;
@@ -47,18 +50,22 @@ export function MetricChartCard({
   const shownOut = hasBand && shown ? isOutOfRange(shown.v, band!) : false;
 
   // Text alternative for the chart (the SVG is hidden from assistive tech).
-  const ariaParts = [`${meta.label}.`];
-  if (series?.last) ariaParts.push(`Latest ${formatValue(series.last.v, meta)}.`);
+  const ariaParts = [`${label}.`];
+  if (series?.last) ariaParts.push(t.chart.ariaLatest(formatValue(series.last.v, meta)));
   if (series && series.min != null && series.max != null && series.avg != null) {
     ariaParts.push(
-      `Low ${formatValue(series.min, meta)}, average ${formatValue(series.avg, meta)}, high ${formatValue(series.max, meta)}.`,
+      t.chart.ariaStats(
+        formatValue(series.min, meta),
+        formatValue(series.avg, meta),
+        formatValue(series.max, meta),
+      ),
     );
   }
   if (hasBand) {
     ariaParts.push(
       outCount > 0
-        ? `${outCount} of ${points.length} readings outside the ideal range.`
-        : "All readings within the ideal range.",
+        ? t.chart.ariaOutOfRange(outCount, points.length)
+        : t.chart.ariaAllInRange,
     );
   }
   const chartLabel = ariaParts.join(" ");
@@ -67,7 +74,7 @@ export function MetricChartCard({
     <Card className="flex flex-col gap-3 p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <span className="text-caption text-muted-stone">{meta.label}</span>
+          <span className="text-caption text-muted-stone">{label}</span>
           <span
             className={cn(
               "text-heading-lg font-medium tabular-nums",
@@ -85,7 +92,7 @@ export function MetricChartCard({
                 outCount > 0 ? "bg-warm-mist text-terracotta" : "bg-fog text-muted-stone",
               )}
             >
-              {outCount > 0 ? `${outCount} out of range` : "in range"}
+              {outCount > 0 ? t.chart.outOfRange(outCount) : t.chart.inRange}
             </span>
           ) : delta !== null ? (
             <span
@@ -98,7 +105,7 @@ export function MetricChartCard({
             </span>
           ) : null}
           <span className="text-caption text-light-steel tabular-nums">
-            {hovered ? formatStamp(hovered.t) : "range"}
+            {hovered ? formatStamp(hovered.t) : t.chart.range}
           </span>
         </div>
       </div>

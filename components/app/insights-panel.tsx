@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n";
 import { lttb, type Point } from "@/lib/downsample";
 import { buildHeatmap, computeDLIByDay, computeVPD, VPD_IDEAL } from "@/lib/derived";
 import { metricMeta, formatValue, type MetricMeta } from "@/lib/metrics";
-import { rangeDef, type RangeKey } from "@/lib/time-range";
+import { type RangeKey } from "@/lib/time-range";
 import type { MetricSeries } from "@/lib/use-readings";
 import { MetricChartCard } from "@/components/charts/metric-chart-card";
 import { Heatmap } from "@/components/charts/heatmap";
@@ -68,6 +69,7 @@ export function InsightsPanel({
   formatTick,
   formatStamp,
 }: InsightsPanelProps) {
+  const { t } = useI18n();
   const vpdSeries = useMemo(
     () => seriesFromPoints("vpd", computeVPD(tempRaw, humidityRaw)),
     [tempRaw, humidityRaw],
@@ -78,10 +80,12 @@ export function InsightsPanel({
   const heatRaw = heatMetric === "lux" ? aggLuxRaw : aggTempRaw;
   const heatmap = useMemo(() => buildHeatmap(heatRaw), [heatRaw]);
   const heatMeta = metricMeta(heatMetric);
+  const heatLabel = t.metrics[heatMetric];
 
   // When the daily views span a wider window than the user's chart selection,
   // label it so the difference is explicit (e.g. 24h charts, 7-day DLI).
-  const windowNote = aggRange !== selectedRange ? `Last ${rangeDef(aggRange).label}` : null;
+  const windowNote =
+    aggRange !== selectedRange ? t.insights.lastWindow(t.insights.rangeLabels[aggRange]) : null;
 
   const hasVpd = vpdSeries.raw.length > 0;
   const hasDli = dli.length > 0;
@@ -91,9 +95,9 @@ export function InsightsPanel({
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h2 className="text-heading font-medium text-ink">Insights</h2>
+        <h2 className="text-heading font-medium text-ink">{t.insights.title}</h2>
         <p className="text-caption text-muted-stone">
-          Derived signals — computed on top of the raw sensor data.
+          {t.insights.subtitle}
         </p>
       </div>
 
@@ -118,7 +122,7 @@ export function InsightsPanel({
         <Card className="flex flex-col gap-4 p-5">
           <div className="flex items-center justify-between gap-3">
             <span className="text-caption text-muted-stone">
-              Daily pattern · hour of day{windowNote ? ` · ${windowNote.toLowerCase()}` : ""}
+              {t.insights.dailyPattern}{windowNote ? ` · ${windowNote.toLowerCase()}` : ""}
             </span>
             <div className="inline-flex items-center gap-1 rounded-pill bg-fog p-1">
               {(["lux", "temp"] as const).map((m) => (
@@ -131,7 +135,7 @@ export function InsightsPanel({
                     heatMetric === m ? "bg-canvas text-ink shadow-subtle" : "text-muted-stone hover:text-ink",
                   )}
                 >
-                  {metricMeta(m).label}
+                  {t.metrics[m]}
                 </button>
               ))}
             </div>
@@ -140,7 +144,7 @@ export function InsightsPanel({
             data={heatmap}
             color={heatMeta.color}
             formatValue={(v) => formatValue(v, heatMeta)}
-            label={heatMeta.label}
+            label={heatLabel}
           />
         </Card>
       ) : null}
@@ -151,6 +155,7 @@ export function InsightsPanel({
 /* ------------------------------------------------------------------- DLI -- */
 
 function DliCard({ dli, note }: { dli: { day: number; dli: number }[]; note: string | null }) {
+  const { t } = useI18n();
   const max = Math.max(...dli.map((d) => d.dli), 0.0001);
   const today = dli[dli.length - 1];
 
@@ -159,21 +164,19 @@ function DliCard({ dli, note }: { dli: { day: number; dli: number }[]; note: str
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <span className="text-caption text-muted-stone">
-            Daily Light Integral{note ? ` · ${note.toLowerCase()}` : ""}
+            {t.insights.dliTitle}{note ? ` · ${note.toLowerCase()}` : ""}
           </span>
           <span className="text-heading-lg font-medium text-ink tabular-nums">
-            {today ? `${today.dli.toFixed(1)} mol` : "—"}
+            {today ? t.insights.dliValue(today.dli.toFixed(1)) : "—"}
           </span>
         </div>
-        <span className="text-caption text-light-steel">mol/m²/day</span>
+        <span className="text-caption text-light-steel">{t.insights.dliUnit}</span>
       </div>
 
       <div
         className="flex flex-col gap-1.5"
         role="img"
-        aria-label={`Daily light integral over ${dli.length} days. ${
-          today ? `Today ${today.dli.toFixed(1)} mol per square metre.` : ""
-        }`}
+        aria-label={t.insights.dliAria(dli.length, today ? today.dli.toFixed(1) : null)}
       >
         {/* Bars are DIRECT children of a definite-height row so their %-heights
             resolve (a %-height inside an auto-height flex column collapses). */}

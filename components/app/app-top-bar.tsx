@@ -4,20 +4,23 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/auth";
-
-const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/account", label: "Account" },
-];
 
 export function AppTopBar() {
   const pathname = usePathname();
   const router = useRouter();
   const email = useAuthStore((s) => s.user?.email);
   const logout = useAuthStore((s) => s.logout);
+  const { t } = useI18n();
+
+  const nav = [
+    { href: "/dashboard", label: t.appNav.dashboard },
+    { href: "/account", label: t.appNav.account },
+  ];
 
   function handleLogout() {
     logout();
@@ -30,7 +33,7 @@ export function AppTopBar() {
         <div className="flex items-center gap-4 sm:gap-8">
           <Logo href="/dashboard" />
           <nav className="flex items-center gap-4 sm:gap-6">
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
@@ -52,8 +55,9 @@ export function AppTopBar() {
           {email ? (
             <span className="hidden text-caption text-muted-stone sm:inline">{email}</span>
           ) : null}
+          <LanguageSwitcher />
           <Button variant="ghost" size="sm" onClick={handleLogout}>
-            Sign out
+            {t.appNav.signOut}
           </Button>
         </div>
       </Container>

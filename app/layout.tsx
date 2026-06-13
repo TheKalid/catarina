@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
+import { I18nProvider } from "@/lib/i18n";
 
 // Sohne substitute — utilitarian UI/body sans.
 const inter = Inter({
@@ -37,7 +38,7 @@ export default function RootLayout({
       className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-canvas text-ink">
-        {children}
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );

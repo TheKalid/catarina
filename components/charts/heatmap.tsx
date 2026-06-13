@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n";
 import type { Heatmap as HeatmapData } from "@/lib/derived";
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -29,9 +30,15 @@ export function Heatmap({
   formatValue: (v: number) => string;
   label?: string;
 }) {
+  const { t } = useI18n();
   const [r, g, b] = hexToRgb(color);
   const span = data.max - data.min || 1;
-  const ariaLabel = `${label ?? "Hourly"} pattern over ${data.days.length} days, by hour of day. Values range ${formatValue(data.min)} to ${formatValue(data.max)}.`;
+  const ariaLabel = t.heatmap.aria(
+    label ?? "",
+    data.days.length,
+    formatValue(data.min),
+    formatValue(data.max),
+  );
 
   return (
     <div className="flex flex-col gap-1.5" role="img" aria-label={ariaLabel}>
@@ -47,7 +54,7 @@ export function Heatmap({
                 return (
                   <div
                     key={h}
-                    title={v === null ? `${h}:00 — no data` : `${h}:00 — ${formatValue(v)}`}
+                    title={v === null ? t.heatmap.noData(h) : t.heatmap.cell(h, formatValue(v))}
                     className={cn("h-4 flex-1 rounded-[2px]", v === null && "bg-fog")}
                     style={v === null ? undefined : { backgroundColor: `rgba(${r},${g},${b},${alpha})` }}
                   />

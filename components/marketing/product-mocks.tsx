@@ -1,5 +1,8 @@
+"use client";
+
 import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n";
 
 /**
  * Small, abstract product mockups used as the hero's "floating UI" and in the
@@ -9,23 +12,24 @@ import { Card } from "@/components/ui/card";
 
 /** A compact device status snapshot. */
 export function DeviceMock({ className }: { className?: string }) {
+  const { t } = useI18n();
   return (
     <Card className={cn("w-72 p-4", className)}>
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-body font-medium text-ink">Kitchen pot</span>
+          <span className="text-body font-medium text-ink">{t.mocks.deviceName}</span>
           <span className="text-caption text-light-steel">pot-mini · CAT-000123</span>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-pill bg-fog px-2.5 py-1 text-caption text-muted-stone">
           <span className="size-1.5 rounded-pill bg-terracotta" />
-          Active
+          {t.mocks.deviceActive}
         </span>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Metric label="Temp" value="22.4°" />
-        <Metric label="Humidity" value="61%" />
-        <Metric label="Water" value="84%" />
+        <Metric label={t.mocks.tempLabel} value="22.4°" />
+        <Metric label={t.mocks.humidityLabel} value="61%" />
+        <Metric label={t.mocks.waterLabel} value="84%" />
       </div>
     </Card>
   );
@@ -45,6 +49,7 @@ function Metric({ label, value }: { label: string; value: string }) {
  * why it matters, what to do.
  */
 export function NotificationMock({ className }: { className?: string }) {
+  const { t } = useI18n();
   return (
     <Card variant="warmMist" className={cn("w-80 border border-terracotta/15 p-4", className)}>
       <div className="flex items-start gap-3">
@@ -52,13 +57,12 @@ export function NotificationMock({ className }: { className?: string }) {
           <DropIcon className="size-4" />
         </span>
         <div className="flex flex-col gap-1.5">
-          <span className="text-body font-medium text-ink">Water reservoir low</span>
+          <span className="text-body font-medium text-ink">{t.mocks.notifTitle}</span>
           <p className="text-caption text-muted-stone text-pretty">
-            Down to ~1 day left. Basil drinks faster while fruiting — top up to
-            2L to avoid stressed roots.
+            {t.mocks.notifBody}
           </p>
           <span className="mt-1 text-caption font-medium text-terracotta">
-            Refill reservoir →
+            {t.mocks.notifAction}
           </span>
         </div>
       </div>

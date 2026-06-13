@@ -15,7 +15,15 @@ export interface TabItem {
  * stay mounted (toggled with `hidden`) so switching is instant and child state
  * — chart hover, fetched lists — is preserved.
  */
-export function Tabs({ tabs, className }: { tabs: TabItem[]; className?: string }) {
+export function Tabs({
+  tabs,
+  className,
+  ariaLabel,
+}: {
+  tabs: TabItem[];
+  className?: string;
+  ariaLabel?: string;
+}) {
   const [active, setActive] = useState(tabs[0]?.key);
   const baseId = useId();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -36,7 +44,7 @@ export function Tabs({ tabs, className }: { tabs: TabItem[]; className?: string 
 
   return (
     <div className={className}>
-      <div role="tablist" aria-label="Device sections" className="flex gap-6 border-b border-ink/10">
+      <div role="tablist" aria-label={ariaLabel} className="flex gap-6 border-b border-ink/10">
         {tabs.map((tab, index) => {
           const selected = tab.key === active;
           return (

@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AppTopBar } from "@/components/app/app-top-bar";
 import { setUnauthorizedHandler } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { useHydrated } from "@/lib/use-hydrated";
 import { useAuthStore } from "@/stores/auth";
 
@@ -17,6 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isAuthed = useAuthStore((s) => Boolean(s.token));
+  const { t } = useI18n();
 
   useEffect(() => {
     if (hydrated && !isAuthed) {
@@ -38,7 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!hydrated || !isAuthed) {
     return (
       <main className="flex flex-1 items-center justify-center">
-        <span className="text-caption text-muted-stone">Loading…</span>
+        <span className="text-caption text-muted-stone">{t.appNav.loading}</span>
       </main>
     );
   }

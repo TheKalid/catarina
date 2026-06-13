@@ -8,9 +8,11 @@ import { ChipIcon } from "@/components/ui/icons";
 import { DeviceCardSkeleton, SkeletonGrid } from "@/components/ui/skeleton";
 import { AddDeviceDialog } from "@/components/app/add-device-dialog";
 import { DeviceCard } from "@/components/app/device-card";
+import { useI18n } from "@/lib/i18n";
 import { useDevicesStore } from "@/stores/devices";
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const byId = useDevicesStore((s) => s.byId);
   const allIds = useDevicesStore((s) => s.allIds);
   const loaded = useDevicesStore((s) => s.loaded);
@@ -32,13 +34,13 @@ export default function DashboardPage() {
     <Container className="flex flex-col gap-8 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="font-display text-display text-ink">Devices</h1>
+          <h1 className="font-display text-display text-ink">{t.dashboard.title}</h1>
           <p className="text-body text-muted-stone">
-            Monitor and manage your growing hardware.
+            {t.dashboard.subtitle}
           </p>
         </div>
         {devices.length > 0 ? (
-          <Button onClick={() => setAdding(true)}>Add device</Button>
+          <Button onClick={() => setAdding(true)}>{t.dashboard.addDevice}</Button>
         ) : null}
       </div>
 
@@ -66,18 +68,19 @@ export default function DashboardPage() {
 }
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
+  const { t } = useI18n();
   return (
     <Card variant="fog" className="flex flex-col items-center gap-4 px-6 py-16 text-center">
       <span className="flex size-12 items-center justify-center rounded-image bg-canvas text-ink">
         <ChipIcon className="size-6" />
       </span>
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-heading font-medium text-ink">No devices yet</h2>
+        <h2 className="text-heading font-medium text-ink">{t.dashboard.emptyTitle}</h2>
         <p className="max-w-sm text-body text-muted-stone text-pretty">
-          Register your first Catarina device to start monitoring your plants.
+          {t.dashboard.emptyBody}
         </p>
       </div>
-      <Button onClick={onAdd}>Add your first device</Button>
+      <Button onClick={onAdd}>{t.dashboard.emptyCta}</Button>
     </Card>
   );
 }
