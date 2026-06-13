@@ -1,0 +1,38 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (keep .env.example committed)
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# The generated API schema IS committed (it lets the app build/typecheck
+# without a running backend). Regenerate with `npm run gen:api`.
+
+# Playwright validation screenshots (generated)
+scripts/screens/
+# Playwright browser test artifacts
+/test-results/
+/playwright-report/

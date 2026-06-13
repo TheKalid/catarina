@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
+/*
+ * Steep — design tokens (see DESIGN.md).
+ * A light, warm "white canvas with depth" system. Tokens are exposed to
+ * Tailwind v4 via @theme, which generates utilities: bg-canvas, text-ink,
+ * font-display, text-display, rounded-card, shadow-subtle, max-w-page, etc.
+ */
+@theme {
+  /* Colors */
+  --color-canvas: #ffffff;
+  --color-ink: #17191c;
+  --color-graphite: #000000;
+  --color-warm-mist: #fbe1d1;
+  --color-terracotta: #5d2a1a;
+  --color-fog: #f7f7f8;
+  --color-muted-stone: #4c4c4c;
+  --color-light-steel: #696d78;
+  --color-hint-of-grey: #a3a6af;
+  --color-dusk-link: #8b8c8d;
+
+  /* Typography — families. Sohne→Inter, Signifier→Fraunces (DESIGN.md fonts
+     are licensed; these are the agreed close substitutes via next/font). */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman",
+    serif;
+
+  /* Typography — scale (size + paired line-height / letter-spacing) */
+  --text-caption: 0.875rem; /* 14px */
+  --text-caption--line-height: 1.43;
+
+  --text-body: 0.9375rem; /* 15px */
+  --text-body--line-height: 1.5;
+
+  --text-heading: 1.375rem; /* 22px */
+  --text-heading--line-height: 1.18;
+
+  --text-heading-lg: 1.625rem; /* 26px */
+  --text-heading-lg--line-height: 1;
+  --text-heading-lg--letter-spacing: -0.23px;
+
+  --text-display: 2.75rem; /* 44px */
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.66px;
+
+  --text-display-lg: 4rem; /* 64px */
+  --text-display-lg--line-height: 1.1;
+  --text-display-lg--letter-spacing: -0.96px;
+
+  --text-display-xl: 5.625rem; /* 90px */
+  --text-display-xl--line-height: 1.05;
+  --text-display-xl--letter-spacing: -1.2px;
+
+  /* Radii */
+  --radius-image: 12px;
+  --radius-input: 16px;
+  --radius-card: 24px;
+  --radius-pill: 9999px;
+
+  /* Elevation — the single, air-like card shadow */
+  --shadow-subtle: rgba(4, 23, 43, 0.05) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px;
+
+  /* Layout */
+  --container-page: 1280px;
+}
+
+/* Steep is a light-only system. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
