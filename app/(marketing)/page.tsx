@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +16,10 @@ import {
   CheckIcon,
 } from "@/components/ui/icons";
 import { DeviceMock, NotificationMock } from "@/components/marketing/product-mocks";
+import { useI18n } from "@/lib/i18n";
+
+const SERVICE_ICONS = [EyeIcon, BellIcon, SparklesIcon, CompassIcon, UsersIcon];
+const GAP_VARIANTS = ["fog", "fog", "warmMist"] as const;
 
 export default function LandingPage() {
   return (
@@ -34,6 +40,7 @@ export default function LandingPage() {
 /* ------------------------------------------------------------------ Hero -- */
 
 function Hero() {
+  const { t } = useI18n();
   return (
     <section className="relative overflow-hidden" id="top">
       {/* Soft, almost-imperceptible warm gradient wash. */}
@@ -48,25 +55,23 @@ function Hero() {
       <Container className="flex flex-col items-center gap-10 pt-20 pb-16 text-center md:pt-28">
         <span className="inline-flex items-center gap-2 rounded-pill border border-ink/10 bg-canvas px-3.5 py-1.5 text-caption text-muted-stone">
           <span className="size-1.5 rounded-pill bg-terracotta" />
-          Hydroponics, made approachable
+          {t.marketing.heroBadge}
         </span>
 
         <h1 className="max-w-4xl font-display text-display-lg text-ink text-balance md:text-display-xl">
-          Grow food, not expertise.
+          {t.marketing.heroTitle}
         </h1>
 
         <p className="max-w-xl text-body text-muted-stone text-pretty md:text-[1.0625rem]">
-          Catarina is smart growing hardware that runs on its own, plus a cloud
-          service that turns sensor data into insight — monitoring, alerts, and
-          AI-assisted care that tells you what to do, and why.
+          {t.marketing.heroBody}
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <ButtonLink href="/register" variant="primary" size="lg">
-            Get started
+            {t.marketing.heroGetStarted}
           </ButtonLink>
           <ButtonLink href="#how-it-works" variant="ghost" size="lg">
-            See how it works
+            {t.marketing.heroSeeHow}
           </ButtonLink>
         </div>
 
@@ -82,35 +87,18 @@ function Hero() {
 
 /* ------------------------------------------------------------- ProductGap -- */
 
-const GAP_CARDS = [
-  {
-    title: "Too simple",
-    body: "Basic kits leave you guessing — constant manual checks and a lot of trial and error.",
-    variant: "fog" as const,
-  },
-  {
-    title: "Too complex",
-    body: "Pro rigs are powerful but demand real expertise just to keep them running.",
-    variant: "fog" as const,
-  },
-  {
-    title: "Catarina",
-    body: "A living system that communicates its needs — approachable for beginners, deep enough for pros.",
-    variant: "warmMist" as const,
-  },
-];
-
 function ProductGap() {
+  const { t } = useI18n();
   return (
     <Section id="product">
       <SectionHeading
-        eyebrow="Why Catarina"
-        title="Caring for plants, not operating equipment."
-        description="Most hydroponic systems force a choice between simple-but-manual and powerful-but-complex. Catarina closes that gap."
+        eyebrow={t.marketing.productEyebrow}
+        title={t.marketing.productTitle}
+        description={t.marketing.productDescription}
       />
       <div className="mt-12 grid gap-5 md:grid-cols-3">
-        {GAP_CARDS.map((card) => (
-          <Card key={card.title} variant={card.variant} className="flex flex-col gap-3 p-6">
+        {t.marketing.gapCards.map((card, i) => (
+          <Card key={card.title} variant={GAP_VARIANTS[i]} className="flex flex-col gap-3 p-6">
             <h3 className="text-heading font-medium text-ink">{card.title}</h3>
             <p className="text-body text-muted-stone text-pretty">{card.body}</p>
           </Card>
@@ -122,35 +110,17 @@ function ProductGap() {
 
 /* ------------------------------------------------------------- HowItWorks -- */
 
-const STEPS = [
-  {
-    n: "01",
-    title: "The hardware senses",
-    body: "Temperature, humidity, light, water and nutrient levels — captured continuously, on device.",
-  },
-  {
-    n: "02",
-    title: "Data syncs",
-    body: "Stored locally and synced over Bluetooth or the cloud — late, batched, or out of order is fine.",
-  },
-  {
-    n: "03",
-    title: "Software explains",
-    body: "Readings become plain-language insight, trends, and recommendations you can act on.",
-  },
-];
-
 function HowItWorks() {
+  const { t } = useI18n();
   return (
     <Section id="how-it-works" className="bg-fog">
-      <SectionHeading
-        eyebrow="How it works"
-        title="The hardware gathers data. The software makes it make sense."
-      />
+      <SectionHeading eyebrow={t.marketing.howEyebrow} title={t.marketing.howTitle} />
       <div className="mt-12 grid gap-5 md:grid-cols-3">
-        {STEPS.map((step) => (
-          <div key={step.n} className="flex flex-col gap-3">
-            <span className="font-display text-heading-lg text-terracotta">{step.n}</span>
+        {t.marketing.steps.map((step, i) => (
+          <div key={step.title} className="flex flex-col gap-3">
+            <span className="font-display text-heading-lg text-terracotta">
+              {String(i + 1).padStart(2, "0")}
+            </span>
             <h3 className="text-heading font-medium text-ink">{step.title}</h3>
             <p className="text-body text-muted-stone text-pretty">{step.body}</p>
           </div>
@@ -162,53 +132,29 @@ function HowItWorks() {
 
 /* ------------------------------------------------------------ ServiceGrid -- */
 
-const SERVICE_FEATURES = [
-  {
-    icon: EyeIcon,
-    title: "Visibility",
-    body: "Real-time and historical data from anywhere — multi-device, with remote access.",
-  },
-  {
-    icon: BellIcon,
-    title: "Awareness",
-    body: "Alerts when conditions need attention: low water, anomalies, equipment, maintenance.",
-  },
-  {
-    icon: SparklesIcon,
-    title: "Understanding",
-    body: "Plant-health analysis and trend identification that turn data into meaning.",
-  },
-  {
-    icon: CompassIcon,
-    title: "Guidance",
-    body: "Recommendations for watering, nutrients, and environment that improve outcomes.",
-  },
-  {
-    icon: UsersIcon,
-    title: "Collaboration",
-    body: "Share devices, give household access, and invite read-only followers.",
-  },
-];
-
 function ServiceGrid() {
+  const { t } = useI18n();
   return (
     <Section id="service">
       <SectionHeading
-        eyebrow="The service"
-        title="A cloud layer that helps you grow healthier plants with less effort."
-        description="An optional subscription on top of the hardware — additive, never a paywall for basic functionality."
+        eyebrow={t.marketing.serviceEyebrow}
+        title={t.marketing.serviceTitle}
+        description={t.marketing.serviceDescription}
       />
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {SERVICE_FEATURES.map(({ icon: Icon, title, body }) => (
-          <Card key={title} className="relative flex flex-col gap-4 overflow-hidden p-6">
-            <span className="absolute inset-x-0 top-0 h-0.5 bg-terracotta" />
-            <span className="flex size-10 items-center justify-center rounded-image bg-fog text-ink">
-              <Icon className="size-5" />
-            </span>
-            <h3 className="text-heading font-medium text-ink">{title}</h3>
-            <p className="text-body text-muted-stone text-pretty">{body}</p>
-          </Card>
-        ))}
+        {t.marketing.serviceFeatures.map(({ title, body }, i) => {
+          const Icon = SERVICE_ICONS[i];
+          return (
+            <Card key={title} className="relative flex flex-col gap-4 overflow-hidden p-6">
+              <span className="absolute inset-x-0 top-0 h-0.5 bg-terracotta" />
+              <span className="flex size-10 items-center justify-center rounded-image bg-fog text-ink">
+                <Icon className="size-5" />
+              </span>
+              <h3 className="text-heading font-medium text-ink">{title}</h3>
+              <p className="text-body text-muted-stone text-pretty">{body}</p>
+            </Card>
+          );
+        })}
       </div>
     </Section>
   );
@@ -216,13 +162,8 @@ function ServiceGrid() {
 
 /* --------------------------------------------------------- ExplainNotAlert -- */
 
-const EXPLAIN_POINTS = [
-  { label: "What happened", body: "The reservoir is down to about a day of water." },
-  { label: "Why it matters", body: "Fruiting basil drinks faster; low water stresses roots." },
-  { label: "What to do", body: "Top up to 2L now to keep growth on track." },
-];
-
 function ExplainNotAlert() {
+  const { t } = useI18n();
   return (
     <Section className="bg-fog">
       <div className="grid items-center gap-12 md:grid-cols-2">
@@ -231,12 +172,12 @@ function ExplainNotAlert() {
         </div>
         <div className="flex flex-col gap-6">
           <SectionHeading
-            eyebrow="A principle"
-            title="Explain, don't just alert."
-            description="Every notification tells you what happened, why it matters, and what to do — so you can act with confidence, no expertise required."
+            eyebrow={t.marketing.explainEyebrow}
+            title={t.marketing.explainTitle}
+            description={t.marketing.explainDescription}
           />
           <ul className="flex flex-col gap-3">
-            {EXPLAIN_POINTS.map((point) => (
+            {t.marketing.explainPoints.map((point) => (
               <li key={point.label} className="flex items-start gap-3">
                 <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-pill bg-terracotta/15 text-terracotta">
                   <CheckIcon className="size-3.5" />
@@ -257,29 +198,23 @@ function ExplainNotAlert() {
 /* --------------------------------------------------------------- TwoSides -- */
 
 function TwoSides() {
+  const { t } = useI18n();
   return (
     <Section>
       <SectionHeading
-        eyebrow="Two sides, one platform"
-        title="The hardware stays valuable on its own."
-        description="Buy the device once and it grows plants and records data with no subscription. The cloud service is there to enhance the experience — not to unlock it."
+        eyebrow={t.marketing.twoSidesEyebrow}
+        title={t.marketing.twoSidesTitle}
+        description={t.marketing.twoSidesDescription}
       />
       <div className="mt-12 grid gap-5 md:grid-cols-2">
         <Card className="flex flex-col gap-5 p-7">
           <span className="flex size-10 items-center justify-center rounded-image bg-fog text-ink">
             <ChipIcon className="size-5" />
           </span>
-          <h3 className="text-heading-lg font-medium text-ink">Hardware</h3>
-          <p className="text-body text-muted-stone text-pretty">
-            Smart growing devices — from a single pot to industrial racks. A
-            one-time purchase that works fully offline.
-          </p>
+          <h3 className="text-heading-lg font-medium text-ink">{t.marketing.hardwareTitle}</h3>
+          <p className="text-body text-muted-stone text-pretty">{t.marketing.hardwareBody}</p>
           <ul className="flex flex-col gap-2">
-            {[
-              "Local monitoring & on-device storage",
-              "Bluetooth sync, works without the cloud",
-              "Use it indefinitely",
-            ].map((item) => (
+            {t.marketing.hardwareFeatures.map((item) => (
               <FeatureLi key={item}>{item}</FeatureLi>
             ))}
           </ul>
@@ -289,17 +224,10 @@ function TwoSides() {
           <span className="flex size-10 items-center justify-center rounded-image bg-canvas text-terracotta">
             <SparklesIcon className="size-5" />
           </span>
-          <h3 className="text-heading-lg font-medium text-ink">Service</h3>
-          <p className="text-body text-muted-stone text-pretty">
-            An optional subscription that turns device data into monitoring,
-            alerts, AI guidance, and remote access across every device you own.
-          </p>
+          <h3 className="text-heading-lg font-medium text-ink">{t.marketing.serviceCardTitle}</h3>
+          <p className="text-body text-muted-stone text-pretty">{t.marketing.serviceCardBody}</p>
           <ul className="flex flex-col gap-2">
-            {[
-              "Cloud sync & historical analytics",
-              "Smart alerts and plant-health insight",
-              "Sharing, followers & remote access",
-            ].map((item) => (
+            {t.marketing.serviceCardFeatures.map((item) => (
               <FeatureLi key={item} accent>
                 {item}
               </FeatureLi>
@@ -322,22 +250,13 @@ function FeatureLi({ children, accent }: { children: ReactNode; accent?: boolean
 
 /* ----------------------------------------------------------------- Scales -- */
 
-const SEGMENTS = [
-  { title: "Home", example: "Kitchen herbs", detail: "One device, a few plants." },
-  { title: "Household", example: "Family food", detail: "Multiple devices or larger systems." },
-  { title: "Commercial", example: "Restaurants & markets", detail: "Many devices, operational monitoring." },
-  { title: "Industrial", example: "Large-scale", detail: "Hundreds of plants, high-volume telemetry." },
-];
-
 function Scales() {
+  const { t } = useI18n();
   return (
     <Section id="scales" className="bg-fog">
-      <SectionHeading
-        eyebrow="Who it's for"
-        title="From one plant to one greenhouse — without changing platforms."
-      />
+      <SectionHeading eyebrow={t.marketing.scalesEyebrow} title={t.marketing.scalesTitle} />
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {SEGMENTS.map((seg) => (
+        {t.marketing.segments.map((seg) => (
           <Card key={seg.title} className="flex flex-col gap-2 p-6">
             <h3 className="text-heading font-medium text-ink">{seg.title}</h3>
             <span className="text-caption font-medium text-terracotta">{seg.example}</span>
@@ -347,7 +266,7 @@ function Scales() {
       </div>
       <div className="mt-8 flex items-center gap-3 text-body text-muted-stone">
         <CloudOffIcon className="size-5 shrink-0 text-ink" />
-        Hardware-first: every device keeps working even when the cloud is away.
+        {t.marketing.scalesNote}
       </div>
     </Section>
   );
@@ -355,24 +274,24 @@ function Scales() {
 
 /* -------------------------------------------------------------- AiRoadmap -- */
 
-const PHASES = ["Observe", "Detect", "Recommend", "Predict", "Assist"];
-
 function AiRoadmap() {
+  const { t } = useI18n();
+  const phases = t.marketing.aiPhases;
   return (
     <Section>
       <SectionHeading
-        eyebrow="Where it's going"
-        title="From monitoring platform to growing assistant."
-        description="Catarina is built to evolve — collecting data today, and increasingly helping you make decisions over time."
+        eyebrow={t.marketing.aiEyebrow}
+        title={t.marketing.aiTitle}
+        description={t.marketing.aiDescription}
       />
       <ol className="mt-12 flex flex-col gap-3 md:flex-row md:items-stretch md:gap-2">
-        {PHASES.map((phase, i) => (
+        {phases.map((phase, i) => (
           <li key={phase} className="flex flex-1 items-center gap-2">
             <div className="flex flex-1 flex-col gap-1 rounded-image border border-ink/8 bg-canvas px-4 py-3">
-              <span className="text-caption text-light-steel">Phase {i + 1}</span>
+              <span className="text-caption text-light-steel">{t.marketing.aiPhaseLabel(i + 1)}</span>
               <span className="text-body font-medium text-ink">{phase}</span>
             </div>
-            {i < PHASES.length - 1 ? (
+            {i < phases.length - 1 ? (
               <span className="hidden text-hint-of-grey md:inline">→</span>
             ) : null}
           </li>
@@ -385,22 +304,22 @@ function AiRoadmap() {
 /* --------------------------------------------------------------- FinalCta -- */
 
 function FinalCta() {
+  const { t } = useI18n();
   return (
     <Section>
       <Card className="flex flex-col items-center gap-6 px-6 py-14 text-center">
         <h2 className="max-w-2xl font-display text-display text-ink text-balance">
-          Start growing with less guesswork.
+          {t.marketing.ctaTitle}
         </h2>
         <p className="max-w-md text-body text-muted-stone text-pretty">
-          Create an account, register your device, and let Catarina help you grow
-          more food with less expertise.
+          {t.marketing.ctaBody}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <ButtonLink href="/register" variant="primary" size="lg">
-            Get started
+            {t.marketing.ctaGetStarted}
           </ButtonLink>
           <ButtonLink href="/login" variant="ghost" size="lg">
-            Log in
+            {t.marketing.ctaLogIn}
           </ButtonLink>
         </div>
       </Card>

@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import { type Account } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { useAccountsStore } from "@/stores/accounts";
 import { useAuthStore } from "@/stores/auth";
 
 export default function AccountPage() {
+  const { t } = useI18n();
   const user = useAuthStore((s) => s.user);
   // Select stable refs and derive the list in render — a selector that returns
   // a fresh array each call loops under zustand v5 (no default shallow compare).
@@ -29,21 +31,21 @@ export default function AccountPage() {
   return (
     <Container className="flex max-w-3xl flex-col gap-8 py-10">
       <div className="flex flex-col gap-1.5">
-        <h1 className="font-display text-display text-ink">Account</h1>
+        <h1 className="font-display text-display text-ink">{t.account.title}</h1>
         <p className="text-body text-muted-stone">
-          Manage your accounts, names, and members.
+          {t.account.subtitle}
         </p>
       </div>
 
       {/* Profile */}
       <Card className="flex flex-col gap-4 p-6">
-        <h2 className="text-heading font-medium text-ink">Profile</h2>
-        <Row label="Email" value={user?.email ?? "—"} />
+        <h2 className="text-heading font-medium text-ink">{t.account.profile}</h2>
+        <Row label={t.account.email} value={user?.email ?? "—"} />
       </Card>
 
       {/* Accounts */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-heading font-medium text-ink">Your accounts</h2>
+        <h2 className="text-heading font-medium text-ink">{t.account.yourAccounts}</h2>
 
         {status === "loading" && accounts.length === 0 ? (
           <Card className="flex flex-col gap-4 p-6">
@@ -60,7 +62,7 @@ export default function AccountPage() {
           </Card>
         ) : accounts.length === 0 ? (
           <Card variant="fog" className="p-6">
-            <p className="text-body text-muted-stone">No accounts found.</p>
+            <p className="text-body text-muted-stone">{t.account.noAccounts}</p>
           </Card>
         ) : (
           accounts.map((account) => <AccountCard key={account.id} account={account} />)
@@ -73,6 +75,7 @@ export default function AccountPage() {
 /* ----------------------------------------------------------- AccountCard -- */
 
 function AccountCard({ account }: { account: Account }) {
+  const { t } = useI18n();
   const rename = useAccountsStore((s) => s.rename);
   const fetchMembers = useAccountsStore((s) => s.fetchMembers);
   const members = useAccountsStore((s) => s.membersByAccount[account.id]);
@@ -98,7 +101,7 @@ function AccountCard({ account }: { account: Account }) {
       await rename(account.id, trimmed);
       setEditing(false);
     } catch (err) {
-      setRenameError(err instanceof Error ? err.message : "Could not rename");
+      setRenameError(err instanceof Error ? err.message : t.account.renameError);
       setName(account.name);
     } finally {
       setSaving(false);
@@ -132,7 +135,7 @@ function AccountCard({ account }: { account: Account }) {
                 className="h-10 max-w-xs"
               />
               <Button size="sm" onClick={save} disabled={saving}>
-                {saving ? "Saving…" : "Save"}
+                {saving ? t.account.saving : t.account.save}
               </Button>
               <Button
                 size="sm"
@@ -143,7 +146,7 @@ function AccountCard({ account }: { account: Account }) {
                   setRenameError(null);
                 }}
               >
-                Cancel
+                {t.account.cancel}
               </Button>
             </div>
           ) : (
@@ -155,7 +158,7 @@ function AccountCard({ account }: { account: Account }) {
                   onClick={() => setEditing(true)}
                   className="text-caption font-medium text-muted-stone underline-offset-4 hover:text-ink hover:underline"
                 >
-                  Edit
+                  {t.account.edit}
                 </button>
               ) : null}
             </div>
@@ -177,15 +180,15 @@ function AccountCard({ account }: { account: Account }) {
           onClick={toggleMembers}
           className="text-caption font-medium text-ink underline-offset-4 hover:underline"
         >
-          {membersOpen ? "Hide members" : "View members"}
+          {membersOpen ? t.account.hideMembers : t.account.viewMembers}
         </button>
 
         {membersOpen ? (
           <div className="mt-4">
             {!members ? (
-              <p className="text-caption text-muted-stone">Loading members…</p>
+              <p className="text-caption text-muted-stone">{t.account.loadingMembers}</p>
             ) : members.length === 0 ? (
-              <p className="text-caption text-muted-stone">No members.</p>
+              <p className="text-caption text-muted-stone">{t.account.noMembers}</p>
             ) : (
               <ul className="flex flex-col divide-y divide-ink/5">
                 {members.map((m) => (

@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/container";
 import { Tabs } from "@/components/ui/tabs";
 import { ChartCardSkeleton, SkeletonGrid } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n";
 import { METRIC_ORDER, metricMeta } from "@/lib/metrics";
 import { resolveWindow, type RangeKey } from "@/lib/time-range";
 import { useReadings } from "@/lib/use-readings";
@@ -26,6 +27,7 @@ const METRICS = [...METRIC_ORDER];
 const AGG_METRICS = ["temp", "lux"];
 
 export default function DeviceDetailPage() {
+  const { t } = useI18n();
   const params = useParams<{ deviceId: string }>();
   const deviceId = params.deviceId;
 
@@ -108,13 +110,13 @@ export default function DeviceDetailPage() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <label className="flex items-center gap-2">
-            <span className="text-caption text-muted-stone">Compare to</span>
+            <span className="text-caption text-muted-stone">{t.device.compareTo}</span>
             <select
               value={cropId}
               onChange={(e) => setCropId(e.target.value)}
               className="h-9 rounded-pill border border-hint-of-grey/60 bg-canvas pl-3 pr-7 text-caption text-ink focus:border-ink focus:outline-none"
             >
-              <option value="">No crop</option>
+              <option value="">{t.device.noCrop}</option>
               {cropList.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -126,13 +128,12 @@ export default function DeviceDetailPage() {
         </div>
         {cropId ? (
           <p className="text-caption text-muted-stone">
-            Shaded band shows the ideal range for the selected crop. Out-of-range
-            readings are flagged per metric.
+            {t.device.bandNote}
           </p>
         ) : null}
         {limited ? (
           <p className="text-caption text-light-steel">
-            Limited history — showing all readings available so far.
+            {t.device.limitedNote}
           </p>
         ) : null}
       </div>
@@ -147,9 +148,9 @@ export default function DeviceDetailPage() {
         </SkeletonGrid>
       ) : !hasAnyData ? (
         <Card variant="fog" className="flex flex-col items-center gap-2 px-6 py-16 text-center">
-          <h2 className="text-heading font-medium text-ink">No readings in this range</h2>
+          <h2 className="text-heading font-medium text-ink">{t.device.noReadingsTitle}</h2>
           <p className="max-w-sm text-body text-muted-stone text-pretty">
-            This device hasn’t reported sensor data for the selected window yet.
+            {t.device.noReadingsBody}
           </p>
         </Card>
       ) : (
@@ -195,11 +196,11 @@ export default function DeviceDetailPage() {
           href="/dashboard"
           className="text-caption text-muted-stone underline-offset-4 hover:text-ink hover:underline"
         >
-          ← Devices
+          {t.device.back}
         </Link>
         <div className="flex flex-col gap-1.5">
           <h1 className="font-display text-display text-ink">
-            {device?.name ?? device?.serial ?? "Device"}
+            {device?.name ?? device?.serial ?? t.device.fallbackName}
           </h1>
           <p className="text-caption text-muted-stone">
             {device ? (
@@ -208,17 +209,18 @@ export default function DeviceDetailPage() {
                 <StatusText status={device.status} />
               </>
             ) : (
-              "Loading device…"
+              t.device.loading
             )}
           </p>
         </div>
       </div>
 
       <Tabs
+        ariaLabel={t.device.tabsAria}
         tabs={[
-          { key: "telemetry", label: "Telemetry", content: telemetry },
-          { key: "grow", label: "Grow", content: <GrowPanel deviceId={deviceId} /> },
-          { key: "activity", label: "Activity", content: <ActivityPanel deviceId={deviceId} /> },
+          { key: "telemetry", label: t.device.tabTelemetry, content: telemetry },
+          { key: "grow", label: t.device.tabGrow, content: <GrowPanel deviceId={deviceId} /> },
+          { key: "activity", label: t.device.tabActivity, content: <ActivityPanel deviceId={deviceId} /> },
         ]}
       />
     </Container>
@@ -226,14 +228,14 @@ export default function DeviceDetailPage() {
 }
 
 function StatusText({ status }: { status: string }) {
+  const { t } = useI18n();
+  const label =
+    (t.deviceStatus as Record<string, string>)[status] ?? status;
   return (
     <span
-      className={cn(
-        "capitalize",
-        status === "active" ? "text-terracotta" : "text-muted-stone",
-      )}
+      className={cn(status === "active" ? "text-terracotta" : "text-muted-stone")}
     >
-      {status}
+      {label}
     </span>
   );
 }

@@ -3,11 +3,16 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useI18n } from "@/lib/i18n";
 import { devices as devicesApi, type DeviceEvent } from "@/lib/api";
 
 export function ActivityPanel({ deviceId }: { deviceId: string }) {
+  const { t } = useI18n();
   const [events, setEvents] = useState<DeviceEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  // Holds the server-provided message, or "" to mean "use the localized
+  // fallback" — localized at render so a locale switch updates it live without
+  // re-running the fetch effect. `null` means no error.
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,7 +23,7 @@ export function ActivityPanel({ deviceId }: { deviceId: string }) {
         if (!cancelled) setEvents(res.data);
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load activity");
+        if (!cancelled) setError(err instanceof Error ? err.message : "");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -30,7 +35,7 @@ export function ActivityPanel({ deviceId }: { deviceId: string }) {
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-heading font-medium text-ink">Activity</h2>
+      <h2 className="text-heading font-medium text-ink">{t.activity.title}</h2>
 
       {loading ? (
         <Card className="flex flex-col gap-4 p-5">
@@ -42,9 +47,9 @@ export function ActivityPanel({ deviceId }: { deviceId: string }) {
             </div>
           ))}
         </Card>
-      ) : error ? (
+      ) : error !== null ? (
         <Card variant="fog" className="p-5">
-          <p className="text-body text-terracotta">{error}</p>
+          <p className="text-body text-terracotta">{error || t.activity.loadError}</p>
         </Card>
       ) : events.length === 0 ? (
         <Card variant="fog" className="flex flex-col items-center gap-2 px-6 py-12 text-center">

@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n";
 import { growSites as growApi, type GrowSite, type Planting } from "@/lib/api";
 import { useCropsStore } from "@/stores/crops";
 
@@ -18,9 +19,13 @@ const PLANTING_STATUS: Record<Planting["status"], string> = {
 };
 
 export function GrowPanel({ deviceId }: { deviceId: string }) {
+  const { t } = useI18n();
   const [sites, setSites] = useState<GrowSite[]>([]);
   const [plantings, setPlantings] = useState<Record<string, Planting[]>>({});
   const [loading, setLoading] = useState(true);
+  // Holds the server-provided message, or "" to mean "use the localized
+  // fallback" — localized at render so a locale switch updates it live without
+  // re-running the fetch. `null` means no error.
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [plantFor, setPlantFor] = useState<GrowSite | null>(null);
@@ -44,7 +49,7 @@ export function GrowPanel({ deviceId }: { deviceId: string }) {
         setError(null);
       })
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Could not load grow sites");
+        setError(err instanceof Error ? err.message : "");
       })
       .finally(() => setLoading(false));
   }, [fetchData]);
@@ -59,7 +64,7 @@ export function GrowPanel({ deviceId }: { deviceId: string }) {
         setError(null);
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load grow sites");
+        if (!cancelled) setError(err instanceof Error ? err.message : "");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -74,9 +79,9 @@ export function GrowPanel({ deviceId }: { deviceId: string }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-heading font-medium text-ink">Grow sites</h2>
+        <h2 className="text-heading font-medium text-ink">{t.grow.title}</h2>
         <Button size="sm" variant="ghost" onClick={() => setAddOpen(true)}>
-          Add grow site
+          {t.grow.addGrowSite}
         </Button>
       </div>
 
@@ -92,14 +97,14 @@ export function GrowPanel({ deviceId }: { deviceId: string }) {
             </Card>
           ))}
         </div>
-      ) : error ? (
+      ) : error !== null ? (
         <Card variant="fog" className="p-5">
-          <p className="text-body text-terracotta">{error}</p>
+          <p className="text-body text-terracotta">{error || t.grow.loadError}</p>
         </Card>
       ) : sites.length === 0 ? (
         <Card variant="fog" className="flex flex-col items-center gap-2 px-6 py-12 text-center">
           <p className="text-body text-muted-stone text-pretty">
-            No grow sites yet. Add a slot to start tracking what’s growing.
+            {t.grow.emptyBody}
           </p>
         </Card>
       ) : (
@@ -110,24 +115,24 @@ export function GrowPanel({ deviceId }: { deviceId: string }) {
               <Card key={site.id} className="flex items-center justify-between gap-3 p-4">
                 <div className="flex flex-col gap-1">
                   <span className="text-body font-medium text-ink">
-                    {site.name ?? `Slot ${site.position}`}
+                    {site.name ?? t.grow.slot(site.position)}
                   </span>
                   {active ? (
                     <span className="flex items-center gap-2 text-caption text-muted-stone">
                       <span className={cn("rounded-pill px-2 py-0.5 capitalize", PLANTING_STATUS[active.status])}>
                         {active.cropCode}
                       </span>
-                      since {formatDate(active.startedAt)}
+                      {t.grow.since(formatDate(active.startedAt))}
                     </span>
                   ) : (
-                    <span className="text-caption text-light-steel">Empty</span>
+                    <span className="text-caption text-light-steel">{t.grow.empty}</span>
                   )}
                 </div>
                 {active ? (
                   <EndButton planting={active} onDone={reload} />
                 ) : (
                   <Button size="sm" variant="ghost" onClick={() => setPlantFor(site)}>
-                    Start planting
+                    {t.grow.startPlanting}
                   </Button>
                 )}
               </Card>
@@ -153,6 +158,7 @@ export function GrowPanel({ deviceId }: { deviceId: string }) {
 }
 
 function EndButton({ planting, onDone }: { planting: Planting; onDone: () => void }) {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   return (
     <Button
@@ -169,7 +175,7 @@ function EndButton({ planting, onDone }: { planting: Planting; onDone: () => voi
         }
       }}
     >
-      {busy ? "Ending…" : "End"}
+      {busy ? t.grow.ending : t.grow.end}
     </Button>
   );
 }
@@ -189,6 +195,7 @@ function AddGrowSiteModal({
   onClose: () => void;
   onAdded: () => void;
 }) {
+  const { t } = useI18n();
   const [position, setPosition] = useState(String(defaultPosition));
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -210,27 +217,27 @@ function AddGrowSiteModal({
       onClose();
       setName("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add grow site");
+      setError(err instanceof Error ? err.message : t.grow.addError);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Add grow site">
+    <Modal open={open} onClose={onClose} title={t.grow.addModalTitle}>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <Field
-          label="Position"
+          label={t.grow.position}
           type="number"
           min={1}
           required
           value={shownPosition}
           onChange={(e) => setPosition(e.target.value)}
-          hint="Slot number on the device."
+          hint={t.grow.positionHint}
         />
         <Field
-          label="Name (optional)"
-          placeholder="Top tray"
+          label={t.grow.nameOptional}
+          placeholder={t.grow.namePlaceholder}
           maxLength={120}
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -238,10 +245,10 @@ function AddGrowSiteModal({
         {error ? <p className="text-caption text-terracotta">{error}</p> : null}
         <div className="mt-1 flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button type="submit" disabled={busy}>
-            {busy ? "Adding…" : "Add"}
+            {busy ? t.grow.adding : t.grow.add}
           </Button>
         </div>
       </form>
@@ -260,6 +267,7 @@ function StartPlantingModal({
   onClose: () => void;
   onStarted: () => void;
 }) {
+  const { t } = useI18n();
   const crops = useCropsStore((s) => s.list);
   const fetchCrops = useCropsStore((s) => s.fetchList);
   const [cropCode, setCropCode] = useState("");
@@ -289,17 +297,17 @@ function StartPlantingModal({
       setNotes("");
       setCropCode("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start planting");
+      setError(err instanceof Error ? err.message : t.grow.startError);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Modal open={site !== null} onClose={onClose} title="Start planting">
+    <Modal open={site !== null} onClose={onClose} title={t.grow.startModalTitle}>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-2">
-          <span className="text-caption font-medium text-ink">Crop</span>
+          <span className="text-caption font-medium text-ink">{t.grow.crop}</span>
           <select
             value={selectedCrop}
             onChange={(e) => setCropCode(e.target.value)}
@@ -313,18 +321,18 @@ function StartPlantingModal({
           </select>
         </label>
         <Field
-          label="Notes (optional)"
-          placeholder="Seedlings from tray B"
+          label={t.grow.notesOptional}
+          placeholder={t.grow.notesPlaceholder}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
         {error ? <p className="text-caption text-terracotta">{error}</p> : null}
         <div className="mt-1 flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button type="submit" disabled={busy || !selectedCrop}>
-            {busy ? "Starting…" : "Start"}
+            {busy ? t.grow.starting : t.grow.start}
           </Button>
         </div>
       </form>

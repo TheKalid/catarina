@@ -7,11 +7,13 @@ import { Modal } from "@/components/ui/modal";
 import { CheckIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/cn";
 import { DEVICE_MODELS } from "@/lib/device-models";
+import { useI18n } from "@/lib/i18n";
 import { useAccountsStore } from "@/stores/accounts";
 import { useDevicesStore } from "@/stores/devices";
 
 export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const register = useDevicesStore((s) => s.register);
+  const { t } = useI18n();
 
   const byId = useAccountsStore((s) => s.byId);
   const allIds = useAccountsStore((s) => s.allIds);
@@ -72,24 +74,24 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
       });
       setSecret(issued);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not register device");
+      setError(err instanceof Error ? err.message : t.addDevice.registerError);
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={close} title={secret ? "Device registered" : "Add a device"}>
+    <Modal open={open} onClose={close} title={secret ? t.addDevice.titleRegistered : t.addDevice.titleAdd}>
       {secret ? (
         <SecretReveal secret={secret} onDone={close} />
       ) : accountsLoading ? (
-        <p className="text-body text-muted-stone">Loading your accounts…</p>
+        <p className="text-body text-muted-stone">{t.addDevice.loadingAccounts}</p>
       ) : noManageableAccount ? (
         <NoAccountNotice onClose={close} />
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {manageableAccounts.length > 1 ? (
             <label className="flex flex-col gap-2">
-              <span className="text-caption font-medium text-ink">Account</span>
+              <span className="text-caption font-medium text-ink">{t.addDevice.account}</span>
               <select
                 value={selectedAccountId}
                 onChange={(e) => setAccountId(e.target.value)}
@@ -104,13 +106,13 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
             </label>
           ) : (
             <div className="flex items-center justify-between rounded-input bg-fog px-4 py-2.5">
-              <span className="text-caption text-muted-stone">Account</span>
+              <span className="text-caption text-muted-stone">{t.addDevice.account}</span>
               <span className="text-body text-ink">{selectedAccount?.name}</span>
             </div>
           )}
 
           <label className="flex flex-col gap-2">
-            <span className="text-caption font-medium text-ink">Model</span>
+            <span className="text-caption font-medium text-ink">{t.addDevice.model}</span>
             <select
               value={modelCode}
               onChange={(e) => setModelCode(e.target.value)}
@@ -125,25 +127,25 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
           </label>
 
           <Field
-            label="Serial"
+            label={t.addDevice.serial}
             placeholder="CAT-000123"
             required
             maxLength={128}
             value={serial}
             onChange={(e) => setSerial(e.target.value)}
-            hint="Printed on the device."
+            hint={t.addDevice.serialHint}
           />
 
           <Field
-            label="Name (optional)"
-            placeholder="Kitchen pot"
+            label={t.addDevice.nameOptional}
+            placeholder={t.addDevice.namePlaceholder}
             maxLength={120}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
 
           <Field
-            label="Firmware version (optional)"
+            label={t.addDevice.firmwareOptional}
             placeholder="1.4.2"
             maxLength={64}
             value={firmware}
@@ -158,10 +160,10 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
 
           <div className="mt-1 flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={submitting || !selectedAccountId || !serial.trim()}>
-              {submitting ? "Registering…" : "Register device"}
+              {submitting ? t.addDevice.registering : t.addDevice.registerCta}
             </Button>
           </div>
         </form>
@@ -173,23 +175,22 @@ export function AddDeviceDialog({ open, onClose }: { open: boolean; onClose: () 
 /* ----------------------------------------------------------- NoAccountNotice -- */
 
 function NoAccountNotice({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-4">
       <p className="text-body text-muted-stone text-pretty">
-        You don’t have an account to register a device under. Devices belong to
-        an account, and your sign-in isn’t an owner or admin of one yet.
+        {t.addDevice.noAccountBody}
       </p>
       <div className="rounded-input bg-fog px-4 py-3 text-caption text-muted-stone text-pretty">
-        Accounts you can manage appear on the{" "}
+        {t.addDevice.noAccountManagePre}
         <a href="/account" className="font-medium text-ink underline-offset-4 hover:underline">
-          Account
-        </a>{" "}
-        page. If it’s empty, you’ll need an account created for you before you
-        can add devices.
+          {t.addDevice.noAccountManageLink}
+        </a>
+        {t.addDevice.noAccountManagePost}
       </div>
       <div className="mt-1 flex justify-end">
         <Button type="button" variant="ghost" onClick={onClose}>
-          Close
+          {t.common.close}
         </Button>
       </div>
     </div>
@@ -199,6 +200,7 @@ function NoAccountNotice({ onClose }: { onClose: () => void }) {
 /* ------------------------------------------------------------ SecretReveal -- */
 
 function SecretReveal({ secret, onDone }: { secret: string; onDone: () => void }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -214,9 +216,9 @@ function SecretReveal({ secret, onDone }: { secret: string; onDone: () => void }
   return (
     <div className="flex flex-col gap-4">
       <p className="text-body text-muted-stone text-pretty">
-        Store this device secret now — it’s shown{" "}
-        <span className="font-medium text-ink">only once</span> and can’t be
-        retrieved again.
+        {t.addDevice.secretIntroPre}
+        <span className="font-medium text-ink">{t.addDevice.secretIntroEmphasis}</span>
+        {t.addDevice.secretIntroPost}
       </p>
 
       <div className="flex items-center gap-2 rounded-input border border-ink/10 bg-fog p-2">
@@ -229,10 +231,10 @@ function SecretReveal({ secret, onDone }: { secret: string; onDone: () => void }
         <Button type="button" size="sm" onClick={copy} className="shrink-0">
           {copied ? (
             <>
-              <CheckIcon className="size-4" /> Copied
+              <CheckIcon className="size-4" /> {t.common.copied}
             </>
           ) : (
-            "Copy"
+            t.common.copy
           )}
         </Button>
       </div>
@@ -242,13 +244,12 @@ function SecretReveal({ secret, onDone }: { secret: string; onDone: () => void }
           "rounded-input bg-warm-mist px-4 py-3 text-caption text-terracotta",
         )}
       >
-        Keep it somewhere safe (a password manager). You’ll need it to
-        authenticate the device.
+        {t.addDevice.secretSafe}
       </div>
 
       <div className="mt-1 flex justify-end">
         <Button type="button" onClick={onDone}>
-          Done
+          {t.common.done}
         </Button>
       </div>
     </div>

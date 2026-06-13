@@ -6,35 +6,35 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/auth";
 
 type Mode = "login" | "register";
-
-const COPY: Record<Mode, { title: string; cta: string; alt: { text: string; href: string; label: string } }> = {
-  login: {
-    title: "Welcome back",
-    cta: "Log in",
-    alt: { text: "New to Catarina?", href: "/register", label: "Create an account" },
-  },
-  register: {
-    title: "Create your account",
-    cta: "Get started",
-    alt: { text: "Already have an account?", href: "/login", label: "Log in" },
-  },
-};
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const login = useAuthStore((s) => s.login);
   const register = useAuthStore((s) => s.register);
+  const { t } = useI18n();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const copy = COPY[mode];
+  const copy =
+    mode === "login"
+      ? {
+          title: t.auth.loginTitle,
+          cta: t.auth.loginCta,
+          alt: { text: t.auth.loginAltText, href: "/register", label: t.auth.loginAltLabel },
+        }
+      : {
+          title: t.auth.registerTitle,
+          cta: t.auth.registerCta,
+          alt: { text: t.auth.registerAltText, href: "/login", label: t.auth.registerAltLabel },
+        };
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -49,7 +49,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       const next = searchParams.get("next");
       router.push(next && next.startsWith("/") ? next : "/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t.auth.genericError);
       setSubmitting(false);
     }
   }
@@ -69,7 +69,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
         <div className="flex flex-col gap-4">
           <Field
-            label="Email"
+            label={t.auth.emailLabel}
             type="email"
             name="email"
             autoComplete="email"
@@ -79,7 +79,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
             onChange={(e) => setEmail(e.target.value)}
           />
           <Field
-            label="Password"
+            label={t.auth.passwordLabel}
             type="password"
             name="password"
             autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -89,7 +89,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
             maxLength={72}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            hint={mode === "register" ? "8–72 characters." : undefined}
+            hint={mode === "register" ? t.auth.passwordHint : undefined}
           />
         </div>
 
@@ -100,7 +100,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         ) : null}
 
         <Button type="submit" size="lg" disabled={submitting} className="w-full">
-          {submitting ? "Please wait…" : copy.cta}
+          {submitting ? t.auth.pleaseWait : copy.cta}
         </Button>
       </form>
     </Card>
